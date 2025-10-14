@@ -2,11 +2,7 @@
 
 This folder contains a minimal TypeScript backend scaffold for the Chilly
 Movies project. It's designed to be UI-agnostic and used by an Electron UI or
-other frontends.
-
-## Quick start
-
-````markdown
+```markdown
 # Chilly Movies — Backend
 
 This folder contains a minimal TypeScript backend scaffold for the Chilly
@@ -115,6 +111,20 @@ importing `createServer()` and listening on a port.
 OpenAPI/Swagger spec is in `contracts/openapi.downloads.yaml` for generating
 client stubs or interactive docs.
 
+## Viewing the OpenAPI spec locally
+
+You can view the OpenAPI YAML file in the `contracts/` folder. To serve it
+locally for a quick visual inspection install `swagger-ui` or use `swagger-ui
+docker` and point it at `contracts/openapi.downloads.yaml`.
+
+Example (curl with API key):
+
+```bash
+export API_SECRET=supersecret
+curl -X POST -H "x-api-key: supersecret" -d '{"id":"1"}' \
+   -H "Content-Type: application/json" http://localhost:3000/download/start
+```
+
 ## Authentication Testing
 
 The server supports an optional API key to protect sensitive endpoints. Set
@@ -154,5 +164,5 @@ for i in 1 2 3 4; do \
 done
 ```
 
-````
+```
 
