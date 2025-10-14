@@ -1,0 +1,29 @@
+openapi: 3.0.3
+info:
+  title: Chilly Movies Local API
+  version: 1.0.0
+servers:
+  - url: http://localhost:PORT
+paths:
+  /api/library/items:
+    get:
+      summary: List media items in the local library
+      responses:
+        '200':
+          description: OK
+  /api/downloads:
+    post:
+      summary: Create a download job
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                source_type:
+                  type: string
+                source_urn:
+                  type: string
+      responses:
+        '201':
+          description: Created
