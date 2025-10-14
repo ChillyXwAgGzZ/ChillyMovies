@@ -3,6 +3,203 @@ info:
   title: Chilly Movies Backend API
   version: 1.0.0
 paths:
+  /events/{id}:
+    get:
+      summary: Subscribe to server-sent events for a download
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Event stream (text/event-stream)
+          content:
+            text/event-stream:
+              schema:
+                type: string
+              examples:
+                progress:
+                  summary: Example progress event
+                  value: "data: {\"event\": \"progress\", \"progress\": {\"percent\": 12}}\\n\\n"
+
+  /download/start:
+    post:
+      summary: Start a new download
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartDownloadRequest'
+      responses:
+        '200':
+          description: Started
+        '401':
+          description: Unauthorized - invalid or missing API key
+        '429':
+          description: Too many requests
+          headers:
+            X-RateLimit-Limit:
+              description: The request quota limit
+              schema:
+                type: integer
+            X-RateLimit-Remaining:
+              description: Remaining requests in the current window
+              schema:
+                type: integer
+            Retry-After:
+              description: Seconds until the rate limit resets
+              schema:
+                type: integer
+
+  /download/pause:
+    post:
+      summary: Pause a download
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+      responses:
+        '200':
+          description: Paused
+        '401':
+          description: Unauthorized - invalid or missing API key
+        '429':
+          description: Too many requests
+          headers:
+            X-RateLimit-Limit:
+              description: The request quota limit
+              schema:
+                type: integer
+            X-RateLimit-Remaining:
+              description: Remaining requests in the current window
+              schema:
+                type: integer
+            Retry-After:
+              description: Seconds until the rate limit resets
+              schema:
+                type: integer
+
+  /download/resume:
+    post:
+      summary: Resume a download
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+      responses:
+        '200':
+          description: Resumed
+        '401':
+          description: Unauthorized - invalid or missing API key
+        '429':
+          description: Too many requests
+          headers:
+            X-RateLimit-Limit:
+              description: The request quota limit
+              schema:
+                type: integer
+            X-RateLimit-Remaining:
+              description: Remaining requests in the current window
+              schema:
+                type: integer
+            Retry-After:
+              description: Seconds until the rate limit resets
+              schema:
+                type: integer
+
+  /download/status/{id}:
+    get:
+      summary: Get download status
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Status
+
+  /download/cancel:
+    post:
+      summary: Cancel a download
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+      responses:
+        '200':
+          description: Cancelled
+        '401':
+          description: Unauthorized - invalid or missing API key
+        '429':
+          description: Too many requests
+          headers:
+            X-RateLimit-Limit:
+              description: The request quota limit
+              schema:
+                type: integer
+            X-RateLimit-Remaining:
+              description: Remaining requests in the current window
+              schema:
+                type: integer
+            Retry-After:
+              description: Seconds until the rate limit resets
+              schema:
+                type: integer
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+  schemas:
+    StartDownloadRequest:
+      type: object
+      required:
+        - id
+        - sourceType
+        - sourceUrn
+      properties:
+        id:
+          type: string
+        sourceType:
+          type: string
+          enum: [torrent, youtube, http, local]
+        sourceUrn:
+          type: string
+openapi: 3.0.3
+info:
+  title: Chilly Movies Backend API
+  version: 1.0.0
+paths:
   /download/start:
     post:
       summary: Start a new download
