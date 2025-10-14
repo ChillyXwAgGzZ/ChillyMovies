@@ -1,0 +1,88 @@
+openapi: 3.0.3
+info:
+  title: Chilly Movies Backend API
+  version: 1.0.0
+paths:
+  /download/start:
+    post:
+      summary: Start a new download
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartDownloadRequest'
+      responses:
+        '200':
+          description: Started
+  /download/pause:
+    post:
+      summary: Pause a download
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+      responses:
+        '200':
+          description: Paused
+  /download/resume:
+    post:
+      summary: Resume a download
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+      responses:
+        '200':
+          description: Resumed
+  /download/status/{id}:
+    get:
+      summary: Get download status
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Status
+  /download/cancel:
+    post:
+      summary: Cancel a download
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+
+components:
+  schemas:
+    StartDownloadRequest:
+      type: object
+      required:
+        - id
+        - sourceType
+        - sourceUrn
+      properties:
+        id:
+          type: string
+        sourceType:
+          type: string
+          enum: [torrent, youtube, http, local]
+        sourceUrn:
+          type: string
