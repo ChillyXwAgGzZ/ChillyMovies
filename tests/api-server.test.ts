@@ -1,19 +1,21 @@
 import { describe, it, expect } from "vitest";
 import request from "supertest";
-import express from "express";
 import createServer from "../src/api-server";
-import { WebTorrentDownloader } from "../src/webtorrent-downloader";
 
-class MockDownloader extends (WebTorrentDownloader as any) {
-  start = async (job: any) => { job.status = "active"; };
-  pause = async (id: string) => {};
-  resume = async (id: string) => {};
-  cancel = async (id: string) => {};
-  getStatus = async (id: string) => ({ id, status: "active", progress: { percent: 10, bytesDownloaded: 1000 } });
+class MockDownloader {
+  async start(job: any) {
+    job.status = "active";
+  }
+  async pause(id: string) {}
+  async resume(id: string) {}
+  async cancel(id: string) {}
+  async getStatus(id: string) {
+    return { id, status: "active", progress: { percent: 10, bytesDownloaded: 1000 } };
+  }
 }
 
 describe("API server", () => {
-  const mock = new MockDownloader({});
+  const mock = new MockDownloader();
   const app = createServer({ downloader: mock as any });
 
   it("starts a download", async () => {

@@ -6,6 +6,15 @@ other frontends.
 
 ## Quick start
 
+````markdown
+# Chilly Movies — Backend
+
+This folder contains a minimal TypeScript backend scaffold for the Chilly
+Movies project. It's designed to be UI-agnostic and used by an Electron UI or
+other frontends.
+
+## Quick start
+
 1. Install dependencies
 
    ```bash
@@ -105,3 +114,45 @@ importing `createServer()` and listening on a port.
 
 OpenAPI/Swagger spec is in `contracts/openapi.downloads.yaml` for generating
 client stubs or interactive docs.
+
+## Authentication Testing
+
+The server supports an optional API key to protect sensitive endpoints. Set
+`API_SECRET` to enable authentication. When set, clients must send the key via
+the `x-api-key` header or `api_key` query parameter.
+
+Quick test examples:
+
+```bash
+# allow-list mode off (public):
+unset API_SECRET
+npm test # all API routes should respond 200 in tests
+
+# enable API key:
+export API_SECRET=supersecret
+# header:
+curl -X POST -H "x-api-key: supersecret" -d '{"id":"1"}' \
+   -H "Content-Type: application/json" http://localhost:3000/download/start
+
+# query param:
+curl -X POST "http://localhost:3000/download/start?api_key=supersecret" \
+   -H "Content-Type: application/json" -d '{"id":"1"}'
+```
+
+## Rate Limit Testing
+
+The server applies rate limiting to protect expensive operations. In tests we
+use short windows so the behavior can be validated quickly; production defaults
+are larger. You can test rate limiting locally by running rapid requests or by
+starting the server with a custom limiter (see `src/api-server.ts`). Example:
+
+```bash
+# send 4 quick requests — with a test limiter of max=3 the 4th will return 429
+for i in 1 2 3 4; do \
+  curl -s -o /dev/null -w "%{http_code}\n" -X POST -H 'Content-Type: application/json' \
+    -d '{"id":"'$i'"}' http://localhost:3000/download/start; \
+done
+```
+
+````
+
