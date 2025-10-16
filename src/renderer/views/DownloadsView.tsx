@@ -23,11 +23,20 @@ function DownloadsView() {
 
   // Get backend port on mount
   React.useEffect(() => {
+    // Check if running in Electron
+    if (!window.electronAPI) {
+      console.warn("Not running in Electron, using default backend port");
+      setBackendPort(3000);
+      return;
+    }
+
     window.electronAPI.getBackendPort().then(port => {
       setBackendPort(port);
       console.log("Backend API running on port:", port);
     }).catch(err => {
       console.error("Failed to get backend port:", err);
+      // Fallback to default port
+      setBackendPort(3000);
     });
 
     // Cleanup EventSources on unmount
@@ -112,7 +121,17 @@ function DownloadsView() {
 
   const handlePause = async (id: string) => {
     try {
-      await window.electronAPI.download.pause(id);
+      if (window.electronAPI) {
+        await window.electronAPI.download.pause(id);
+      } else {
+        // Direct API call if not in Electron
+        const response = await fetch(`http://localhost:${backendPort}/download/pause`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id }),
+        });
+        if (!response.ok) throw new Error('Failed to pause');
+      }
       // Refresh downloads list
       // TODO: Implement real-time updates via EventSource
     } catch (err) {
@@ -122,7 +141,16 @@ function DownloadsView() {
 
   const handleResume = async (id: string) => {
     try {
-      await window.electronAPI.download.resume(id);
+      if (window.electronAPI) {
+        await window.electronAPI.download.resume(id);
+      } else {
+        const response = await fetch(`http://localhost:${backendPort}/download/resume`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id }),
+        });
+        if (!response.ok) throw new Error('Failed to resume');
+      }
     } catch (err) {
       console.error("Failed to resume download:", err);
     }
@@ -130,7 +158,16 @@ function DownloadsView() {
 
   const handleCancel = async (id: string) => {
     try {
-      await window.electronAPI.download.cancel(id);
+      if (window.electronAPI) {
+        await window.electronAPI.download.cancel(id);
+      } else {
+        const response = await fetch(`http://localhost:${backendPort}/download/cancel`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id }),
+        });
+        if (!response.ok) throw new Error('Failed to cancel');
+      }
       setDownloads((prev) => prev.filter((d) => d.id !== id));
     } catch (err) {
       console.error("Failed to cancel download:", err);

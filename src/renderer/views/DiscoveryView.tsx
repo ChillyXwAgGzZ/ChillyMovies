@@ -21,12 +21,21 @@ function DiscoveryView() {
 
   // Get backend port on mount
   React.useEffect(() => {
+    // Check if running in Electron
+    if (!window.electronAPI) {
+      console.warn("Not running in Electron, using default backend port");
+      setBackendPort(3000);
+      return;
+    }
+
     window.electronAPI.getBackendPort().then(port => {
       setBackendPort(port);
       console.log("Backend API running on port:", port);
     }).catch(err => {
       console.error("Failed to get backend port:", err);
       setError("Failed to connect to backend API");
+      // Fallback to default port
+      setBackendPort(3000);
     });
   }, []);
 

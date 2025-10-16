@@ -302,6 +302,64 @@
   margin-bottom: 0.5rem;
 }
 
+/* Error Banner */
+.error-banner {
+  padding: 1rem;
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid var(--error-color);
+  border-radius: 0.375rem;
+  color: var(--error-color);
+  margin-bottom: 1rem;
+}
+
+/* Result Card Enhancements */
+.result-poster {
+  width: 100%;
+  height: auto;
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
+}
+
+.result-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.result-year {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.media-type-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.result-overview {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.result-rating {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.progress-details {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
 /* Reduced Motion Support */
 @media (prefers-reduced-motion: reduce) {
   * {
