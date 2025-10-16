@@ -2,6 +2,7 @@ import express from "express";
 import bodyParser from "body-parser";
 import rateLimit from "express-rate-limit";
 import { StorageManager } from "./storage";
+import { TMDBMetadataFetcher } from "./metadata";
 import { Request, Response } from "express";
 import { StartDownloadRequest, ApiResponse, StatusResponse } from "./api-types";
 
@@ -149,6 +150,43 @@ export function createServer(opts?: { downloader?: any; startLimiter?: any; canc
     try {
       await downloader.cancel(id);
       res.json({ success: true } as ApiResponse);
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: String(err) } as ApiResponse);
+    }
+  });
+
+  // Metadata endpoints
+  const metadata = new TMDBMetadataFetcher();
+
+  app.get("/metadata/search", async (req: Request, res: Response) => {
+    const { q } = req.query as { q?: string };
+    if (!q) {
+      res.status(400).json({ success: false, error: "Missing query parameter 'q'" } as ApiResponse);
+      return;
+    }
+
+    try {
+      const results = await metadata.searchByTitle(q);
+      res.json({ success: true, data: results } as ApiResponse);
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: String(err) } as ApiResponse);
+    }
+  });
+
+  app.get("/metadata/:mediaType/:id", async (req: Request, res: Response) => {
+    const { mediaType, id } = req.params;
+    if (mediaType !== "movie" && mediaType !== "tv") {
+      res.status(400).json({ success: false, error: "Invalid media type. Use 'movie' or 'tv'" } as ApiResponse);
+      return;
+    }
+
+    try {
+      const result = await metadata.fetchByTMDBId(parseInt(id), mediaType as "movie" | "tv");
+      if (!result) {
+        res.status(404).json({ success: false, error: "Not found" } as ApiResponse);
+        return;
+      }
+      res.json({ success: true, data: result } as ApiResponse);
     } catch (err: any) {
       res.status(500).json({ success: false, error: String(err) } as ApiResponse);
     }

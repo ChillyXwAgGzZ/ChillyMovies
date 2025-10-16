@@ -115,51 +115,84 @@ specs/[###-feature]/
 ```
 
 ### Source Code (repository root)
-<!--
-  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
--->
 
 ```
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
 src/
-├── models/
-├── services/
-├── cli/
-└── lib/
+├── main/                      # Electron main process
+│   ├── main.ts               # App lifecycle, window management, IPC handlers
+│   └── preload.ts            # Secure IPC bridge (contextBridge)
+├── renderer/                 # React UI (renderer process)
+│   ├── views/                # Application views
+│   │   ├── DiscoveryView.tsx # TMDB search and discovery
+│   │   ├── LibraryView.tsx   # Local media library
+│   │   ├── DownloadsView.tsx # Active downloads with SSE progress
+│   │   └── SettingsView.tsx  # User preferences and settings
+│   ├── App.tsx               # Main app component with routing
+│   ├── App.css               # Global styles
+│   ├── main.tsx              # React entry point, axe-core integration
+│   ├── i18n.ts               # i18next configuration (EN/SW)
+│   ├── index.css             # Base styles
+│   └── index.html            # HTML shell
+├── api-server.ts             # Express backend API (download, metadata, SSE)
+├── api-types.ts              # API request/response type definitions
+├── downloader.ts             # Download engine interface
+├── webtorrent-downloader.ts  # WebTorrent implementation
+├── storage.ts                # SQLite/JSON storage manager
+├── metadata.ts               # TMDB metadata fetcher
+├── retry.ts                  # Exponential backoff retry utility
+├── logger.ts                 # Structured logging
+├── types.ts                  # Shared type definitions
+└── index.ts                  # Public exports
 
 tests/
-├── contract/
-├── integration/
-└── unit/
+├── api-server.test.ts        # Backend API endpoints
+├── api-auth.test.ts          # API authentication
+├── api-rate-limit.test.ts    # Rate limiting
+├── downloader.test.ts        # Download engine interface
+├── webtorrent.unit.test.ts   # WebTorrent driver unit tests
+├── webtorrent.integration.test.ts # WebTorrent integration tests
+├── storage.test.ts           # Storage layer tests
+├── metadata.test.ts          # Metadata fetcher tests
+├── retry.test.ts             # Retry logic tests
+├── retry_behavior.test.ts    # Retry behavior validation
+└── resume_cleanup.test.ts    # Resume data cleanup tests
 
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
+contracts/
+└── openapi.downloads.yaml    # API contract specification
 
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
+docs/
+└── TMDB_SETUP.md             # TMDB API key setup guide
 
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
+specs/001-chilly-movies-a/    # Feature specification documents
+├── spec.md                   # Feature specification
+├── plan.md                   # This file
+├── tasks.md                  # Task breakdown
+├── research.md               # Phase 0 research decisions
+├── data-model.md             # Entity definitions
+├── quickstart.md             # Developer quickstart
+├── checklists/
+│   └── requirements.md       # Spec quality checklist
+└── contracts/
+    └── openapi.yaml          # Full API contract
 
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+Configuration Files:
+├── package.json              # Dependencies, scripts, electron-builder config
+├── tsconfig.json             # Base TypeScript config
+├── tsconfig.build.json       # Backend build config
+├── tsconfig.main.json        # Electron main process config
+├── tsconfig.renderer.json    # React renderer config
+├── vite.config.ts            # Vite bundler config
+├── .env.example              # Environment variables template
+├── .gitignore                # Git ignore patterns
+└── README.md                 # Project documentation
 ```
 
-**Structure Decision**: [Document the selected structure and reference the real
-directories captured above]
+**Structure Decision**: Electron desktop application with three distinct layers:
+1. **Main process** (`src/main/`): Electron lifecycle, window management, IPC bridge
+2. **Renderer process** (`src/renderer/`): React-based UI with routing and views
+3. **Backend process** (`src/*.ts`): Express API server, download engine, storage, metadata
+
+All processes run locally. The main process starts the backend server on a random port and exposes it to the renderer via IPC. The renderer communicates with the backend through both REST endpoints and Server-Sent Events (SSE) for real-time updates.
 
 ## Complexity Tracking
 
