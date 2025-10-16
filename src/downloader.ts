@@ -17,15 +17,15 @@ export interface DownloadJob {
   progress?: Progress;
 }
 
-export interface Downloader extends EventEmitter {
-  start(job: DownloadJob): Promise<void>;
-  pause(jobId: UUID): Promise<void>;
-  resume(jobId: UUID): Promise<void>;
-  cancel(jobId: UUID): Promise<void>;
-  getStatus(jobId: UUID): Promise<DownloadJob | null>;
+export abstract class Downloader extends EventEmitter {
+  abstract start(job: DownloadJob): Promise<void>;
+  abstract pause(jobId: UUID): Promise<void>;
+  abstract resume(jobId: UUID): Promise<void>;
+  abstract cancel(jobId: UUID): Promise<void>;
+  abstract getStatus(jobId: UUID): Promise<DownloadJob | null>;
 }
 
-export class MockDownloader extends EventEmitter implements Downloader {
+export class MockDownloader extends Downloader {
   private jobs = new Map<UUID, DownloadJob>();
 
   async start(job: DownloadJob) {
