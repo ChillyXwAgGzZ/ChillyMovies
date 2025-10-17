@@ -1,5 +1,8 @@
 import fetch from "node-fetch";
 import { withRetry } from "./retry";
+import { Cache, createCacheKey } from "./cache";
+import { getTMDBApiKey } from "./secrets";
+import path from "path";
 
 export interface MediaMetadata {
   id?: number | string;
@@ -18,31 +21,83 @@ export interface MetadataFetcher {
   searchByTitle(title: string): Promise<MediaMetadata[]>;
 }
 
+export interface TMDBFetcherOptions {
+  apiKey?: string;
+  enableCache?: boolean;
+  cacheTTL?: number;
+  cachePath?: string;
+}
+
 export class TMDBMetadataFetcher implements MetadataFetcher {
   private apiKey: string;
   private baseUrl: string;
+  private cache: Cache<MediaMetadata | MediaMetadata[]> | null = null;
+  private apiKeyInitialized: boolean = false;
 
-  constructor(apiKey?: string) {
-    // If apiKey is explicitly provided (even empty string), use it; otherwise fall back to env
-    this.apiKey = apiKey !== undefined ? apiKey : (process.env.TMDB_API_KEY || "");
+  constructor(options?: TMDBFetcherOptions) {
+    // If apiKey is explicitly provided (even empty string), use it; otherwise will load from secure storage
+    this.apiKey = options?.apiKey !== undefined ? options.apiKey : "";
     this.baseUrl = process.env.TMDB_BASE_URL || "https://api.themoviedb.org/3";
     
-    if (!this.apiKey) {
-      console.warn("TMDB_API_KEY not set. Metadata fetching will fail. Please set it in .env file.");
+    if (options?.apiKey !== undefined) {
+      this.apiKeyInitialized = true;
+      if (!this.apiKey) {
+        console.warn("TMDB_API_KEY not set. Metadata fetching will fail. Please set it in .env file.");
+      }
+    }
+
+    // Initialize cache if enabled
+    if (options?.enableCache !== false) {
+      this.cache = new Cache({
+        ttl: options?.cacheTTL ?? 3600000, // 1 hour default
+        maxSize: 500,
+        persistPath: options?.cachePath ?? path.resolve(process.cwd(), ".cache", "tmdb-cache.json"),
+      });
+    }
+  }
+  
+  /**
+   * Ensure API key is loaded from secure storage if not explicitly provided
+   */
+  private async ensureApiKey(): Promise<void> {
+    if (!this.apiKeyInitialized) {
+      const key = await getTMDBApiKey();
+      if (key) {
+        this.apiKey = key;
+      }
+      this.apiKeyInitialized = true;
+      
+      if (!this.apiKey) {
+        console.warn("TMDB_API_KEY not set. Metadata fetching will fail. Please set it in .env file or secure storage.");
+      }
     }
   }
 
   async fetchByTMDBId(tmdbId: number, mediaType: "movie" | "tv" = "movie"): Promise<MediaMetadata | null> {
+    await this.ensureApiKey();
+    
     if (!this.apiKey) {
       throw new Error("TMDB API key not configured");
     }
 
-    return withRetry(async () => {
+    // Check cache first
+    const cacheKey = createCacheKey("tmdb", "id", mediaType, tmdbId);
+    if (this.cache) {
+      const cached = this.cache.get(cacheKey);
+      if (cached) {
+        return cached as MediaMetadata | null;
+      }
+    }
+
+    const result = await withRetry(async () => {
       const url = `${this.baseUrl}/${mediaType}/${tmdbId}?api_key=${this.apiKey}`;
       const response = await fetch(url);
       
       if (!response.ok) {
         if (response.status === 404) return null;
+        if (response.status === 429) {
+          throw new Error("TMDB API rate limit exceeded. Please try again later or configure your own API key.");
+        }
         throw new Error(`TMDB API error: ${response.status} ${response.statusText}`);
       }
 
@@ -61,18 +116,39 @@ export class TMDBMetadataFetcher implements MetadataFetcher {
         mediaType,
       };
     }, { retries: 2 });
+
+    // Cache the result
+    if (this.cache && result) {
+      this.cache.set(cacheKey, result);
+    }
+
+    return result;
   }
 
   async searchByTitle(title: string): Promise<MediaMetadata[]> {
+    await this.ensureApiKey();
+    
     if (!this.apiKey) {
       throw new Error("TMDB API key not configured");
     }
 
-    return withRetry(async () => {
+    // Check cache first
+    const cacheKey = createCacheKey("tmdb", "search", title.toLowerCase());
+    if (this.cache) {
+      const cached = this.cache.get(cacheKey);
+      if (cached) {
+        return cached as MediaMetadata[];
+      }
+    }
+
+    const results = await withRetry(async () => {
       const url = `${this.baseUrl}/search/multi?api_key=${this.apiKey}&query=${encodeURIComponent(title)}`;
       const response = await fetch(url);
       
       if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error("TMDB API rate limit exceeded. Using cached results if available.");
+        }
         throw new Error(`TMDB API error: ${response.status} ${response.statusText}`);
       }
 
@@ -93,7 +169,39 @@ export class TMDBMetadataFetcher implements MetadataFetcher {
           releaseDate: item.release_date || item.first_air_date,
           mediaType: item.media_type,
         }));
-    }, { retries: 2 });
+    }, { 
+      retries: 2
+    });
+
+    // Cache the results
+    if (this.cache && results.length > 0) {
+      this.cache.set(cacheKey, results, 1800000); // Cache searches for 30 minutes
+    }
+
+    return results;
+  }
+
+  /**
+   * Get cache statistics
+   */
+  getCacheStats() {
+    return this.cache?.getStats() || null;
+  }
+
+  /**
+   * Clear the cache
+   */
+  clearCache() {
+    this.cache?.clear();
+  }
+
+  /**
+   * Shutdown and cleanup
+   */
+  async shutdown() {
+    if (this.cache) {
+      await this.cache.shutdown();
+    }
   }
 }
 

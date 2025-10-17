@@ -2,6 +2,61 @@
 
 **A desktop-first, local-first offline movie and TV show downloader and player built with Electron, React, Node.js, and TypeScript.**
 
+---
+
+## ⚠️ LEGAL DISCLAIMER - READ CAREFULLY
+
+**THIS IS IMPORTANT LEGAL INFORMATION. PLEASE READ BEFORE USING THIS SOFTWARE.**
+
+ChillyMovies is a personal media management tool designed for organizing and accessing **legally obtained media content**. The optional torrent search feature is provided for accessing legally available content only.
+
+### Your Responsibility
+
+By using ChillyMovies, you acknowledge and agree that:
+
+1. **You are solely responsible** for ensuring that your use complies with all applicable laws, including copyright laws in your jurisdiction.
+
+2. **Downloading copyrighted material without permission is illegal** in most countries and can result in:
+   - Civil lawsuits with damages up to $150,000 per work (US)
+   - Criminal charges and imprisonment in some jurisdictions
+   - ISP warnings, throttling, or service termination
+   - Heavy fines (especially in Germany, Japan, UK, France)
+
+3. **We do not verify content legality**. This application indexes public torrent metadata but does not verify whether content is legal to download in your jurisdiction.
+
+4. **We are not liable** for your use of this software, any content you download, or any legal consequences you face.
+
+### Intended Use
+
+This software is intended for:
+- ✓ Managing your personal, legally-obtained media library
+- ✓ Downloading public domain content
+- ✓ Accessing content you have licenses for
+- ✓ Downloading content with explicit permission from copyright holders
+
+### Prohibited Use
+
+Do **NOT** use this software to:
+- ✗ Download copyrighted content without authorization
+- ✗ Violate intellectual property rights
+- ✗ Circumvent DRM or technological protection measures
+- ✗ Engage in piracy or illegal file sharing
+
+### No Warranty
+
+This software is provided **"AS IS"** without warranty of any kind. Use at your own risk.
+
+### Additional Legal Information
+
+- **Terms of Service**: [docs/TERMS_OF_SERVICE.md](docs/TERMS_OF_SERVICE.md)
+- **Privacy Policy**: [docs/PRIVACY_POLICY.md](docs/PRIVACY_POLICY.md)
+- **DMCA Process**: [docs/DMCA_PROCESS.md](docs/DMCA_PROCESS.md)
+- **Legal Compliance Guide**: [docs/LEGAL_COMPLIANCE.md](docs/LEGAL_COMPLIANCE.md)
+
+**IF YOU DO NOT AGREE WITH THESE TERMS, DO NOT USE THIS SOFTWARE.**
+
+---
+
 ## 🎯 Project Vision
 
 Chilly Movies provides reliable offline playback and local library management without cloud dependencies. Key principles:

@@ -22,6 +22,10 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+logs/
+
+# Cache
+.cache/
 
 # Electron
 release/
