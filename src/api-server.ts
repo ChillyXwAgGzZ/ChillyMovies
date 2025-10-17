@@ -277,6 +277,22 @@ export function createServer(opts?: { downloader?: any; startLimiter?: any; canc
     }
   });
 
+  // Trailer endpoints
+  app.get("/metadata/:mediaType/:id/trailers", async (req: Request, res: Response) => {
+    const { mediaType, id } = req.params;
+    if (mediaType !== "movie" && mediaType !== "tv") {
+      res.status(400).json({ success: false, error: "Invalid media type. Use 'movie' or 'tv'" } as ApiResponse);
+      return;
+    }
+
+    try {
+      const trailers = await metadata.fetchTrailers(parseInt(id), mediaType as "movie" | "tv");
+      res.json({ success: true, data: trailers } as ApiResponse);
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: String(err) } as ApiResponse);
+    }
+  });
+
   // Torrent search endpoints
   app.get("/torrents/search", async (req: Request, res: Response) => {
     const { q, limit, quality, minSeeders, providers } = req.query as {

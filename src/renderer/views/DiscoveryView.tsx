@@ -1,5 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { TrailerModal } from "../components/TrailerModal";
 
 interface MediaResult {
   id: number;
@@ -37,6 +38,8 @@ function DiscoveryView() {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string>("");
   const [backendPort, setBackendPort] = React.useState<number | null>(null);
+  const [trailerModalOpen, setTrailerModalOpen] = React.useState(false);
+  const [trailerItem, setTrailerItem] = React.useState<MediaResult | null>(null);
 
   // Get backend port on mount
   React.useEffect(() => {
@@ -197,6 +200,16 @@ function DiscoveryView() {
     setTorrentResults([]);
   };
 
+  const handleWatchTrailer = (item: MediaResult) => {
+    setTrailerItem(item);
+    setTrailerModalOpen(true);
+  };
+
+  const handleCloseTrailer = () => {
+    setTrailerModalOpen(false);
+    setTrailerItem(null);
+  };
+
   return (
     <div className="view discovery-view">
       <h2>{t("discovery.title")}</h2>
@@ -272,13 +285,24 @@ function DiscoveryView() {
                   {item.voteAverage !== undefined && (
                     <p className="result-rating">⭐ {item.voteAverage.toFixed(1)}/10</p>
                   )}
-                  <button 
-                    className="btn-primary" 
-                    onClick={() => handleFindTorrents(item)}
-                    aria-label={`Find torrents for ${item.title}`}
-                  >
-                    🔍 Find Torrents
-                  </button>
+                  <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
+                    <button 
+                      className="btn-secondary" 
+                      onClick={() => handleWatchTrailer(item)}
+                      aria-label={`Watch trailer for ${item.title}`}
+                      style={{ flex: 1 }}
+                    >
+                      🎬 {t("discovery.watchTrailer", "Watch Trailer")}
+                    </button>
+                    <button 
+                      className="btn-primary" 
+                      onClick={() => handleFindTorrents(item)}
+                      aria-label={`Find torrents for ${item.title}`}
+                      style={{ flex: 1 }}
+                    >
+                      🔍 {t("discovery.findTorrents", "Find Torrents")}
+                    </button>
+                  </div>
                 </div>
               </div>
             ))
@@ -331,6 +355,16 @@ function DiscoveryView() {
             </p>
           )}
         </div>
+      )}
+      
+      {/* Trailer Modal */}
+      {trailerModalOpen && trailerItem && (
+        <TrailerModal
+          tmdbId={typeof trailerItem.id === 'number' ? trailerItem.id : parseInt(trailerItem.id as string)}
+          mediaType={trailerItem.mediaType || "movie"}
+          title={trailerItem.title}
+          onClose={handleCloseTrailer}
+        />
       )}
     </div>
   );
