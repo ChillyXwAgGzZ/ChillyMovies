@@ -18,8 +18,10 @@
  * - The Pirate Bay (via proxy) - Wide selection
  */
 
-import { logger } from './logger';
-import fetch from 'node-fetch';
+import { getLogger } from './logger';
+import fetch, { RequestInit as FetchRequestInit } from 'node-fetch';
+
+const logger = getLogger();
 
 export interface TorrentResult {
   /** Provider-specific unique identifier */
@@ -86,6 +88,16 @@ class YTSProvider implements TorrentProvider {
   private lastRequest = 0;
   private minInterval = 1000; // 1 second between requests
 
+  private async fetchWithTimeout(url: string, timeoutMs: number, init?: FetchRequestInit) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, { ...(init ?? {}), signal: controller.signal } as FetchRequestInit);
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
   async search(query: string, options: SearchOptions = {}): Promise<TorrentResult[]> {
     try {
       // Rate limiting
@@ -112,9 +124,8 @@ class YTSProvider implements TorrentProvider {
       const url = `${this.baseUrl}/list_movies.json?${params}`;
       logger.info(`YTS search: ${query}`, { url });
 
-      const response = await fetch(url, {
+      const response = await this.fetchWithTimeout(url, 10000, {
         headers: { 'User-Agent': 'ChillyMovies/1.0' },
-        timeout: 10000,
       });
 
       if (!response.ok) {
@@ -172,9 +183,7 @@ class YTSProvider implements TorrentProvider {
 
   async isAvailable(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseUrl}/list_movies.json?limit=1`, {
-        timeout: 5000,
-      });
+      const response = await this.fetchWithTimeout(`${this.baseUrl}/list_movies.json?limit=1`, 5000);
       return response.ok;
     } catch {
       return false;
@@ -213,6 +222,16 @@ class Provider1337x implements TorrentProvider {
   private lastRequest = 0;
   private minInterval = 2000; // 2 seconds between requests (be respectful)
 
+  private async fetchWithTimeout(url: string, timeoutMs: number, init?: FetchRequestInit) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, { ...(init ?? {}), signal: controller.signal } as FetchRequestInit);
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
   async search(query: string, options: SearchOptions = {}): Promise<TorrentResult[]> {
     logger.warn('1337x provider not fully implemented - requires HTML scraping');
     return [];
@@ -228,7 +247,7 @@ class Provider1337x implements TorrentProvider {
 
   async isAvailable(): Promise<boolean> {
     try {
-      const response = await fetch(this.baseUrl, { timeout: 5000 });
+      const response = await this.fetchWithTimeout(this.baseUrl, 5000);
       return response.ok;
     } catch {
       return false;
