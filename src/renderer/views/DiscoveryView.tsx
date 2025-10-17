@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { TrailerModal } from "../components/TrailerModal";
+import { MovieCard, TorrentCard, SearchBar, EmptyState } from "../components";
 
 interface MediaResult {
   id: number;
@@ -247,69 +248,42 @@ function DiscoveryView() {
         </div>
       )}
 
-      <form onSubmit={handleSearch} className="search-form" role="search">
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder={searchMode === "metadata" ? t("discovery.search") : "Search torrents..."}
-          className="search-input"
-          aria-label={searchMode === "metadata" ? t("discovery.search") : "Search torrents"}
-        />
-        <button type="submit" className="search-button" disabled={loading || !backendPort}>
-          {loading ? t("discovery.loading") : "Search"}
-        </button>
-      </form>
+      <SearchBar
+        value={searchQuery}
+        onChange={setSearchQuery}
+        onSubmit={handleSearch}
+        placeholder={searchMode === "metadata" ? t("discovery.search") : "Search torrents..."}
+        isLoading={loading}
+        disabled={!backendPort}
+        buttonText="Search"
+      />
 
       {/* Metadata Results */}
       {searchMode === "metadata" && (
         <div className="results-grid" role="region" aria-label="Search results">
           {results.length > 0 ? (
             results.map((item) => (
-              <div key={item.id} className="result-card">
-                {item.poster && (
-                  <img 
-                    src={item.poster} 
-                    alt={`${item.title} poster`}
-                    className="result-poster"
-                    loading="lazy"
-                  />
-                )}
-                <div className="result-info">
-                  <h3>{item.title}</h3>
-                  {item.year && <p className="result-year">{item.year}</p>}
-                  {item.mediaType && (
-                    <span className="media-type-badge">{item.mediaType === "movie" ? "Movie" : "TV Show"}</span>
-                  )}
-                  {item.overview && <p className="result-overview">{item.overview.slice(0, 150)}...</p>}
-                  {item.voteAverage !== undefined && (
-                    <p className="result-rating">⭐ {item.voteAverage.toFixed(1)}/10</p>
-                  )}
-                  <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
-                    <button 
-                      className="btn-secondary" 
-                      onClick={() => handleWatchTrailer(item)}
-                      aria-label={`Watch trailer for ${item.title}`}
-                      style={{ flex: 1 }}
-                    >
-                      🎬 {t("discovery.watchTrailer", "Watch Trailer")}
-                    </button>
-                    <button 
-                      className="btn-primary" 
-                      onClick={() => handleFindTorrents(item)}
-                      aria-label={`Find torrents for ${item.title}`}
-                      style={{ flex: 1 }}
-                    >
-                      🔍 {t("discovery.findTorrents", "Find Torrents")}
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <MovieCard
+                key={item.id}
+                id={item.id}
+                title={item.title}
+                year={item.year}
+                poster={item.poster}
+                overview={item.overview}
+                mediaType={item.mediaType}
+                voteAverage={item.voteAverage}
+                onWatchTrailer={() => handleWatchTrailer(item)}
+                onFindTorrents={() => handleFindTorrents(item)}
+              />
             ))
           ) : (
-            <p className="empty-state">
-              {searchQuery ? "No results found. Try a different search." : "Search for movies and TV shows to get started"}
-            </p>
+            <EmptyState
+              description={
+                searchQuery
+                  ? "No results found. Try a different search."
+                  : "Search for movies and TV shows to get started"
+              }
+            />
           )}
         </div>
       )}
@@ -321,38 +295,28 @@ function DiscoveryView() {
             <>
               <p className="results-count">Found {torrentResults.length} torrents</p>
               {torrentResults.map((torrent) => (
-                <div key={torrent.id} className="torrent-card">
-                  <div className="torrent-info">
-                    <h4>{torrent.title}</h4>
-                    <div className="torrent-meta">
-                      {torrent.quality && (
-                        <span className="quality-badge">{torrent.quality}</span>
-                      )}
-                      <span className="size-info">💾 {torrent.sizeFormatted}</span>
-                      <span className="seeders-info" title="Seeders">
-                        🌱 {torrent.seeders}
-                      </span>
-                      <span className="leechers-info" title="Leechers">
-                        📥 {torrent.leechers}
-                      </span>
-                      <span className="provider-badge">{torrent.provider}</span>
-                    </div>
-                  </div>
-                  <button
-                    className="btn-primary download-btn"
-                    onClick={() => handleDownload(torrent)}
-                    aria-label={`Download ${torrent.title}`}
-                    disabled={torrent.seeders === 0}
-                  >
-                    {torrent.seeders === 0 ? "⚠️ No Seeders" : `⬇️ Download`}
-                  </button>
-                </div>
+                <TorrentCard
+                  key={torrent.id}
+                  id={torrent.id}
+                  title={torrent.title}
+                  year={torrent.year}
+                  quality={torrent.quality}
+                  sizeFormatted={torrent.sizeFormatted}
+                  seeders={torrent.seeders}
+                  leechers={torrent.leechers}
+                  provider={torrent.provider}
+                  onDownload={() => handleDownload(torrent)}
+                />
               ))}
             </>
           ) : (
-            <p className="empty-state">
-              {searchQuery ? "No torrents found. Try a different search or adjust filters." : "Enter a search query to find torrents"}
-            </p>
+            <EmptyState
+              description={
+                searchQuery
+                  ? "No torrents found. Try a different search or adjust filters."
+                  : "Enter a search query to find torrents"
+              }
+            />
           )}
         </div>
       )}
