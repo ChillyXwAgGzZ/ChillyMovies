@@ -69,6 +69,20 @@ const resources = {
       "common.error": "Error",
       "common.success": "Success",
       "common.browse": "Browse",
+      "common.loading": "Loading...",
+      
+      // Trailer
+      "trailer.title": "Trailers",
+      "trailer.watchTrailer": "Watch Trailer",
+      "trailer.selectTrailer": "Select Trailer",
+      "trailer.noTrailers": "No trailers available for this title",
+      "trailer.offlineMessage": "Trailers require an internet connection",
+      "trailer.networkError": "Network error. Please check your connection.",
+      "trailer.fetchError": "Failed to load trailers",
+      
+      // Discovery
+      "discovery.findTorrents": "Find Torrents",
+      "discovery.watchTrailer": "Watch Trailer",
     },
   },
   sw: {
@@ -137,6 +151,20 @@ const resources = {
       "common.error": "Hitilafu",
       "common.success": "Imefanikiwa",
       "common.browse": "Tafuta",
+      "common.loading": "Inapakia...",
+      
+      // Trailer
+      "trailer.title": "Tangazo",
+      "trailer.watchTrailer": "Tazama Tangazo",
+      "trailer.selectTrailer": "Chagua Tangazo",
+      "trailer.noTrailers": "Hakuna tangazo kwa kichwa hiki",
+      "trailer.offlineMessage": "Tangazo zinahitaji muunganisho wa mtandao",
+      "trailer.networkError": "Hitilafu ya mtandao. Tafadhali angalia muunganisho wako.",
+      "trailer.fetchError": "Imeshindwa kupakia tangazo",
+      
+      // Discovery
+      "discovery.findTorrents": "Tafuta Torrent",
+      "discovery.watchTrailer": "Tazama Tangazo",
     },
   },
 };

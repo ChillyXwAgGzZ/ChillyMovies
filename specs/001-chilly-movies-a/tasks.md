@@ -423,6 +423,39 @@ This file lists prioritized engineering tasks derived from Phase 0 research (TAS
 
 ---
 
+### TASK-I10 (Medium) — YouTube Trailer Integration (User Request)
+- Owner: eng
+- Priority: Medium
+- Estimate: 2 days
+- Dependencies: TASK-I7 (TMDB Integration)
+- Description: Integrate YouTube trailer viewing functionality for movies and TV shows. Fetch trailer links from TMDB API, display them in an embedded YouTube player with offline handling and bilingual support.
+- Acceptance criteria:
+  - TrailerInfo interface and fetchTrailers method added to metadata module
+  - Trailers fetched from TMDB API with YouTube filtering
+  - Cache layer for trailers (24-hour TTL)
+  - TrailerModal component with embedded YouTube player
+  - Multiple trailer selection UI
+  - Watch Trailer button integrated in DiscoveryView
+  - Offline/online detection and graceful degradation
+  - All UI text translated (EN/SW)
+  - API endpoint GET /metadata/:mediaType/:id/trailers
+  - Unit and integration tests for trailer functionality
+- Notes: Enhances discovery experience by allowing users to preview content before downloading
+- Status: ✅ COMPLETED
+  - Backend trailer fetching implemented (src/metadata.ts)
+  - API endpoint added to api-server.ts
+  - TrailerModal component created (src/renderer/components/TrailerModal.tsx)
+  - Integration in DiscoveryView with Watch Trailer buttons
+  - Offline handling with real-time connectivity detection
+  - i18n translations added for all trailer UI (EN/SW)
+  - Tests created (tests/metadata-trailers.test.ts, tests/api-server.test.ts)
+  - Documentation created (docs/YOUTUBE_TRAILERS.md)
+  - Caching with 24-hour TTL
+  - Trailer filtering (YouTube only) and sorting (official first)
+  - Multiple trailer selection UI
+
+---
+
 ### Execution notes
 - **Phase 0 (Research)**: TASK-R2, TASK-R1, TASK-R9, TASK-R7, TASK-R8, TASK-R10, TASK-R3, TASK-R4, TASK-R6, TASK-R5
 - **Phase 1 (Foundation)**: TASK-I1, TASK-I2, TASK-I3 (constitution-critical)

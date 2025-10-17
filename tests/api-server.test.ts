@@ -1,6 +1,10 @@
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import createServer from "../src/api-server";
+import { config } from "dotenv";
+
+// Load environment variables
+config();
 
 // Mock logger
 vi.mock('../src/logger', () => ({
@@ -61,5 +65,26 @@ describe("API server", () => {
   it("cancels a download", async () => {
     const res = await request(app).post("/download/cancel").send({ id: "a" });
     expect(res.status).toBe(200);
+  });
+
+  it("fetches trailers for a movie", async () => {
+    const res = await request(app).get("/metadata/movie/550/trailers");
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(Array.isArray(res.body.data)).toBe(true);
+  });
+
+  it("fetches trailers for a TV show", async () => {
+    const res = await request(app).get("/metadata/tv/1399/trailers");
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(Array.isArray(res.body.data)).toBe(true);
+  });
+
+  it("returns 400 for invalid media type in trailer endpoint", async () => {
+    const res = await request(app).get("/metadata/invalid/550/trailers");
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.error).toContain("Invalid media type");
   });
 });

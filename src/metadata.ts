@@ -16,9 +16,20 @@ export interface MediaMetadata {
   mediaType?: "movie" | "tv";
 }
 
+export interface TrailerInfo {
+  id: string;
+  key: string; // YouTube video key
+  name: string;
+  site: string; // "YouTube"
+  type: string; // "Trailer", "Teaser", etc.
+  official: boolean;
+  publishedAt: string;
+}
+
 export interface MetadataFetcher {
   fetchByTMDBId(tmdbId: number, mediaType?: "movie" | "tv"): Promise<MediaMetadata | null>;
   searchByTitle(title: string): Promise<MediaMetadata[]>;
+  fetchTrailers(tmdbId: number, mediaType?: "movie" | "tv"): Promise<TrailerInfo[]>;
 }
 
 export interface TMDBFetcherOptions {
@@ -31,7 +42,7 @@ export interface TMDBFetcherOptions {
 export class TMDBMetadataFetcher implements MetadataFetcher {
   private apiKey: string;
   private baseUrl: string;
-  private cache: Cache<MediaMetadata | MediaMetadata[]> | null = null;
+  private cache: Cache<MediaMetadata | MediaMetadata[] | TrailerInfo[]> | null = null;
   private apiKeyInitialized: boolean = false;
 
   constructor(options?: TMDBFetcherOptions) {
@@ -182,6 +193,72 @@ export class TMDBMetadataFetcher implements MetadataFetcher {
   }
 
   /**
+   * Fetch trailer videos for a movie or TV show from TMDB
+   */
+  async fetchTrailers(tmdbId: number, mediaType: "movie" | "tv" = "movie"): Promise<TrailerInfo[]> {
+    await this.ensureApiKey();
+    
+    if (!this.apiKey) {
+      throw new Error("TMDB API key not configured");
+    }
+
+    // Check cache first
+    const cacheKey = createCacheKey("tmdb", "trailers", mediaType, tmdbId);
+    if (this.cache) {
+      const cached = this.cache.get(cacheKey);
+      if (cached) {
+        return cached as TrailerInfo[];
+      }
+    }
+
+    const results = await withRetry(async () => {
+      const url = `${this.baseUrl}/${mediaType}/${tmdbId}/videos?api_key=${this.apiKey}`;
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        if (response.status === 404) return [];
+        if (response.status === 429) {
+          throw new Error("TMDB API rate limit exceeded. Please try again later.");
+        }
+        throw new Error(`TMDB API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data: any = await response.json();
+      
+      // Filter for YouTube trailers and sort by official status and type
+      const trailers = (data.results || [])
+        .filter((video: any) => video.site === "YouTube" && (video.type === "Trailer" || video.type === "Teaser"))
+        .map((video: any) => ({
+          id: video.id,
+          key: video.key,
+          name: video.name,
+          site: video.site,
+          type: video.type,
+          official: video.official || false,
+          publishedAt: video.published_at,
+        }))
+        .sort((a: any, b: any) => {
+          // Prioritize official trailers
+          if (a.official && !b.official) return -1;
+          if (!a.official && b.official) return 1;
+          // Then prioritize "Trailer" over "Teaser"
+          if (a.type === "Trailer" && b.type !== "Trailer") return -1;
+          if (a.type !== "Trailer" && b.type === "Trailer") return 1;
+          return 0;
+        });
+
+      return trailers;
+    }, { retries: 2 });
+
+    // Cache the results for 24 hours (trailers don't change often)
+    if (this.cache && results.length > 0) {
+      this.cache.set(cacheKey, results, 86400000); // 24 hours
+    }
+
+    return results;
+  }
+
+  /**
    * Get cache statistics
    */
   getCacheStats() {
@@ -218,6 +295,20 @@ export class MockMetadataFetcher implements MetadataFetcher {
   async searchByTitle(title: string) {
     return [
       { id: 1, title: `${title} (result 1)`, overview: "mock", year: 2019 },
+    ];
+  }
+
+  async fetchTrailers(tmdbId: number, mediaType: "movie" | "tv" = "movie"): Promise<TrailerInfo[]> {
+    return [
+      {
+        id: "mock-trailer-1",
+        key: "dQw4w9WgXcQ",
+        name: `Official Trailer`,
+        site: "YouTube",
+        type: "Trailer",
+        official: true,
+        publishedAt: "2024-01-01T00:00:00.000Z",
+      },
     ];
   }
 }
