@@ -75,6 +75,24 @@ export class StorageManager {
     return this.mediaRoot;
   }
 
+  getAllItems() {
+    if (Database) {
+      const rows = this.db.prepare("SELECT * FROM media_items ORDER BY created_at DESC").all();
+      return rows.map((row: any) => ({
+        id: row.id,
+        title: row.title,
+        metadata: JSON.parse(row.metadata_json),
+        createdAt: row.created_at,
+      }));
+    }
+    const obj = JSON.parse(fs.readFileSync(this.db.jsonPath, "utf8"));
+    return Object.values(obj.media_items);
+  }
+
+  getItem(id: string) {
+    return this.getMediaItem(id);
+  }
+
   // Partial file helpers used by downloaders to resume/cleanup
   getPartialPath(id: string) {
     return path.join(this.mediaRoot, `${id}.partial`);

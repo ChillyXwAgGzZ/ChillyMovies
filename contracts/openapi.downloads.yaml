@@ -2,6 +2,7 @@ openapi: 3.0.3
 info:
   title: Chilly Movies Backend API
   version: 1.0.0
+  description: Backend API for Chilly Movies desktop application - download management and metadata search
 paths:
   /download/start:
     post:
@@ -15,6 +16,10 @@ paths:
       responses:
         '200':
           description: Started
+        '401':
+          description: Unauthorized (API key required)
+        '429':
+          description: Too many requests (rate limited)
   /download/pause:
     post:
       summary: Pause a download
@@ -69,6 +74,84 @@ paths:
               properties:
                 id:
                   type: string
+      responses:
+        '200':
+          description: Cancelled
+  /events/{id}:
+    get:
+      summary: Server-Sent Events for download progress
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Event stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+  /metadata/search:
+    get:
+      summary: Search for movies and TV shows via TMDB
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+          description: Search query
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MediaMetadata'
+        '400':
+          description: Missing query parameter
+        '500':
+          description: TMDB API error
+  /metadata/{mediaType}/{id}:
+    get:
+      summary: Get metadata for a specific movie or TV show by TMDB ID
+      parameters:
+        - in: path
+          name: mediaType
+          required: true
+          schema:
+            type: string
+            enum: [movie, tv]
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Metadata retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/MediaMetadata'
+        '404':
+          description: Not found
+        '500':
+          description: TMDB API error
 
 components:
   schemas:
@@ -86,3 +169,28 @@ components:
           enum: [torrent, youtube, http, local]
         sourceUrn:
           type: string
+    MediaMetadata:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        overview:
+          type: string
+        year:
+          type: integer
+        poster:
+          type: string
+          description: Full URL to poster image
+        backdrop:
+          type: string
+          description: Full URL to backdrop image
+        voteAverage:
+          type: number
+        releaseDate:
+          type: string
+          format: date
+        mediaType:
+          type: string
+          enum: [movie, tv]
