@@ -1,9 +1,10 @@
 import React from "react";
+import { Button } from "./Button";
 
 export interface EmptyStateProps {
   icon?: React.ReactNode;
-  title?: string;
-  description: string;
+  title: string;
+  description?: string;
   action?: {
     label: string;
     onClick: () => void;
@@ -12,8 +13,7 @@ export interface EmptyStateProps {
 }
 
 /**
- * Reusable EmptyState component for displaying empty content areas
- * Prepared for design system integration
+ * Cinematic EmptyState Component
  */
 export const EmptyState: React.FC<EmptyStateProps> = ({
   icon,
@@ -23,14 +23,35 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   className = "",
 }) => {
   return (
-    <div className={`empty-state ${className}`}>
-      {icon && <div className="empty-state-icon">{icon}</div>}
-      {title && <h3 className="empty-state-title">{title}</h3>}
-      <p className="empty-state-description">{description}</p>
+    <div className={`flex flex-col items-center justify-center py-20 px-6 text-center ${className}`}>
+      {/* Icon */}
+      {icon && (
+        <div className="mb-6 text-gray-600 opacity-50">
+          {icon}
+        </div>
+      )}
+
+      {/* Title */}
+      <h3 className="text-2xl font-bold text-white mb-3">
+        {title}
+      </h3>
+
+      {/* Description */}
+      {description && (
+        <p className="text-gray-400 text-base max-w-md mb-8">
+          {description}
+        </p>
+      )}
+
+      {/* Action Button */}
       {action && (
-        <button onClick={action.onClick} className="btn-primary empty-state-action">
+        <Button
+          variant="neon"
+          size="lg"
+          onClick={action.onClick}
+        >
           {action.label}
-        </button>
+        </Button>
       )}
     </div>
   );

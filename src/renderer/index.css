@@ -5,20 +5,66 @@
   box-sizing: border-box;
 }
 
-:root {
-  --primary-color: #2563eb;
-  --primary-hover: #1d4ed8;
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --bg-tertiary: #334155;
-  --text-primary: #f1f5f9;
-  --text-secondary: #cbd5e1;
-  --text-muted: #94a3b8;
-  --border-color: #475569;
-  --success-color: #10b981;
-  --warning-color: #f59e0b;
-  --error-color: #ef4444;
-  --focus-outline: 2px solid #3b82f6;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color-scheme: dark;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  * {
+    @apply box-border;
+  }
+
+  body {
+    @apply m-0 min-h-screen bg-cinema-black text-white;
+  }
+
+  #root {
+    @apply w-full min-h-screen;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-cinema-darker;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-cinema-light rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-neon-cyan;
+  }
+}
+
+@layer components {
+  /* Cinematic Card */
+  .cinema-card {
+    @apply bg-cinema-dark rounded-lg overflow-hidden shadow-card transition-all duration-300;
+    @apply hover:shadow-neon hover:scale-105 hover:-translate-y-1;
+  }
+
+  /* Neon Button */
+  .btn-neon {
+    @apply px-6 py-3 rounded-full font-semibold transition-all duration-300;
+    @apply bg-gradient-to-r from-neon-cyan to-neon-blue text-white;
+    @apply hover:shadow-neon hover:scale-105 active:scale-95;
+  }
+
+  /* Glass Effect */
+  .glass-effect {
+    @apply bg-white bg-opacity-5 backdrop-blur-md border border-white border-opacity-10;
+  }
 }
 
 body {
