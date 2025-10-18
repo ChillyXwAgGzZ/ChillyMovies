@@ -73,6 +73,15 @@ const resources = {
       "library.addContent": "Add content to get started",
       "library.emptyStateTitle": "Your library is empty",
       "library.emptyStateDescription": "Add movies to your library from Discover or import existing files.",
+      "library.item": "item",
+      "library.items": "items",
+      "library.play": "Play",
+      "library.delete": "Delete",
+      "library.browseMovies": "Browse Movies",
+      "library.playNotImplemented": "Video player not yet implemented",
+      "library.deleteNotImplemented": "Delete functionality not yet implemented",
+      "library.confirmDelete": "Are you sure you want to delete this item?",
+      "library.deleteError": "Failed to delete item",
 
       // Downloads view
       "downloads.title": "Downloads",
@@ -91,6 +100,9 @@ const resources = {
       "downloads.actions.pause": "Pause",
       "downloads.actions.resume": "Resume",
       "downloads.actions.cancel": "Cancel",
+      "downloads.actions.pauseError": "Failed to pause download",
+      "downloads.actions.resumeError": "Failed to resume download",
+      "downloads.actions.cancelError": "Failed to cancel download",
 
       // Download actions
       "download.start": "Start",
@@ -207,6 +219,15 @@ const resources = {
       "library.addContent": "Ongeza maudhui kuanza",
       "library.emptyStateTitle": "Maktaba yako ni tupu",
       "library.emptyStateDescription": "Ongeza filamu kwenye maktaba kupitia Gundua au leta faili zilizopo.",
+      "library.item": "kipengee",
+      "library.items": "vipengee",
+      "library.play": "Cheza",
+      "library.delete": "Futa",
+      "library.browseMovies": "Vinjari Filamu",
+      "library.playNotImplemented": "Kichezeshi video bado hakijatekelezwa",
+      "library.deleteNotImplemented": "Utendaji wa kufuta bado haujapatikana",
+      "library.confirmDelete": "Una uhakika unataka kufuta kipengee hiki?",
+      "library.deleteError": "Imeshindwa kufuta kipengee",
 
       // Downloads view
       "downloads.title": "Upakuaji",
@@ -225,6 +246,9 @@ const resources = {
       "downloads.actions.pause": "Sitisha",
       "downloads.actions.resume": "Endelea",
       "downloads.actions.cancel": "Ghairi",
+      "downloads.actions.pauseError": "Imeshindwa kusitisha upakuaji",
+      "downloads.actions.resumeError": "Imeshindwa kuendelea upakuaji",
+      "downloads.actions.cancelError": "Imeshindwa kughairi upakuaji",
 
       // Download actions
       "download.start": "Anza",
