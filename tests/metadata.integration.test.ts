@@ -10,7 +10,7 @@ describe("TMDBMetadataFetcher - Live API Integration", () => {
   const shouldSkip = !process.env.TMDB_API_KEY || process.env.TMDB_API_KEY === "";
 
   it.skipIf(shouldSkip)("should fetch movie details by TMDB ID", async () => {
-    const fetcher = new TMDBMetadataFetcher();
+    const fetcher = new TMDBMetadataFetcher({ enableCache: false }); // Disable cache for integration tests
     
     // The Matrix (1999) - TMDB ID: 603
     const result = await fetcher.fetchByTMDBId(603, "movie");
@@ -25,7 +25,7 @@ describe("TMDBMetadataFetcher - Live API Integration", () => {
   }, { timeout: 10000 });
 
   it.skipIf(shouldSkip)("should search for movies by title", async () => {
-    const fetcher = new TMDBMetadataFetcher();
+    const fetcher = new TMDBMetadataFetcher({ enableCache: false });
     
     const results = await fetcher.searchByTitle("Inception");
     
@@ -39,7 +39,7 @@ describe("TMDBMetadataFetcher - Live API Integration", () => {
   }, { timeout: 10000 });
 
   it.skipIf(shouldSkip)("should fetch TV show details by TMDB ID", async () => {
-    const fetcher = new TMDBMetadataFetcher();
+    const fetcher = new TMDBMetadataFetcher({ enableCache: false });
     
     // Breaking Bad - TMDB ID: 1396
     const result = await fetcher.fetchByTMDBId(1396, "tv");
@@ -79,7 +79,7 @@ describe("TMDBMetadataFetcher - Live API Integration", () => {
   }, { timeout: 30000 });
 
   it("should throw error when API key is not configured", async () => {
-    const fetcher = new TMDBMetadataFetcher(""); // Empty API key
+    const fetcher = new TMDBMetadataFetcher({ apiKey: "", enableCache: false }); // Empty API key, no cache
     
     await expect(fetcher.fetchByTMDBId(603, "movie")).rejects.toThrow("TMDB API key not configured");
     await expect(fetcher.searchByTitle("Inception")).rejects.toThrow("TMDB API key not configured");
