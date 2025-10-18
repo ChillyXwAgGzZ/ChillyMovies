@@ -293,6 +293,23 @@ export function createServer(opts?: { downloader?: any; startLimiter?: any; canc
     }
   });
 
+  // Popular content endpoint
+  app.get("/metadata/popular", async (req: Request, res: Response) => {
+    const { mediaType = "movie", page = "1" } = req.query as { mediaType?: string; page?: string };
+    
+    if (mediaType !== "movie" && mediaType !== "tv") {
+      res.status(400).json({ success: false, error: "Invalid media type. Use 'movie' or 'tv'" } as ApiResponse);
+      return;
+    }
+
+    try {
+      const results = await metadata.fetchPopular(mediaType as "movie" | "tv", parseInt(page));
+      res.json({ success: true, data: results } as ApiResponse);
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: String(err) } as ApiResponse);
+    }
+  });
+
   // Torrent search endpoints
   app.get("/torrents/search", async (req: Request, res: Response) => {
     const { q, limit, quality, minSeeders, providers } = req.query as {
@@ -354,6 +371,22 @@ export function createServer(opts?: { downloader?: any; startLimiter?: any; canc
     try {
       torrentSearch.clearCache();
       res.json({ success: true, data: { message: "Torrent cache cleared" } } as ApiResponse);
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: String(err) } as ApiResponse);
+    }
+  });
+
+  // Library list endpoint
+  app.get("/library", async (req: Request, res: Response) => {
+    try {
+      const items = storage.getAllItems();
+      res.json({ 
+        success: true, 
+        data: {
+          items,
+          count: items.length
+        }
+      } as ApiResponse);
     } catch (err: any) {
       res.status(500).json({ success: false, error: String(err) } as ApiResponse);
     }

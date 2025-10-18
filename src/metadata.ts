@@ -266,6 +266,64 @@ export class TMDBMetadataFetcher implements MetadataFetcher {
   }
 
   /**
+   * Fetch popular movies or TV shows
+   */
+  async fetchPopular(mediaType: "movie" | "tv" = "movie", page: number = 1): Promise<MediaMetadata[]> {
+    await this.ensureApiKey();
+    
+    if (!this.apiKey) {
+      throw new Error("TMDB API key not configured");
+    }
+
+    // Check cache first
+    const cacheKey = createCacheKey("tmdb", "popular", mediaType, page);
+    if (this.cache) {
+      const cached = this.cache.get(cacheKey);
+      if (cached) {
+        return cached as MediaMetadata[];
+      }
+    }
+
+    const results = await withRetry(async () => {
+      const url = `${this.baseUrl}/${mediaType}/popular?api_key=${this.apiKey}&page=${page}`;
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error("TMDB API rate limit exceeded. Using cached results if available.");
+        }
+        throw new Error(`TMDB API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data: any = await response.json();
+      
+      return (data.results || [])
+        .slice(0, 20) // Limit to top 20 results
+        .map((item: any) => ({
+          id: item.id,
+          title: item.title || item.name,
+          overview: item.overview,
+          year: item.release_date ? new Date(item.release_date).getFullYear() : 
+                item.first_air_date ? new Date(item.first_air_date).getFullYear() : undefined,
+          poster: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : undefined,
+          backdrop: item.backdrop_path ? `https://image.tmdb.org/t/p/original${item.backdrop_path}` : undefined,
+          voteAverage: item.vote_average,
+          releaseDate: item.release_date || item.first_air_date,
+          mediaType: mediaType,
+        }));
+    }, { 
+      retries: 2
+    });
+
+    // Cache the results
+    if (this.cache) {
+      this.cache.set(cacheKey, results);
+    }
+
+    return results;
+  }
+
+  /**
    * Clear the cache
    */
   clearCache() {

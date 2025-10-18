@@ -4,16 +4,34 @@ import React from 'react';
 interface MovieCardProps {
   title: string;
   year: string;
-  posterUrl: string;
+  poster: string;
   rating: number;
+  onClick?: () => void;
 }
 
-const MovieCard: React.FC<MovieCardProps> = ({ title, year, posterUrl, rating }) => {
+const MovieCard: React.FC<MovieCardProps> = ({ title, year, poster, rating, onClick }) => {
   return (
-    <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-indigo-500/50 transition-shadow duration-300">
-      <img src={posterUrl} alt={title} className="w-full h-64 object-cover" />
+    <div 
+      className="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-indigo-500/50 transition-shadow duration-300 cursor-pointer transform hover:scale-105 transition-transform"
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyPress={(e) => {
+        if (e.key === 'Enter' && onClick) {
+          onClick();
+        }
+      }}
+    >
+      <img 
+        src={poster || 'https://via.placeholder.com/500x750?text=No+Poster'} 
+        alt={title} 
+        className="w-full h-64 object-cover" 
+        onError={(e) => {
+          e.currentTarget.src = 'https://via.placeholder.com/500x750?text=No+Poster';
+        }}
+      />
       <div className="p-4">
-        <h3 className="text-lg font-bold text-white">{title}</h3>
+        <h3 className="text-lg font-bold text-white truncate" title={title}>{title}</h3>
         <div className="flex justify-between items-center mt-2">
           <p className="text-sm text-gray-400">{year}</p>
           <div className="flex items-center">

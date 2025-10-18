@@ -1,68 +1,169 @@
-// src/renderer/views/HomeView.tsx
-import React from 'react';
-import MovieCard from '../components/MovieCard';
-import { useTranslation } from 'react-i18next';
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+import MovieCard from "../components/MovieCard";
+import { metadataApi, type MediaMetadata } from "../services/api";
 
-const featuredMovie = {
-  title: 'Inception',
-  year: '2010',
-  posterUrl: 'https://image.tmdb.org/t/p/w500/oYuPnu92hJ84zAbvjOBW0sa4u2p.jpg',
-  rating: 8.8,
-  description: 'A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.',
-};
+interface HomeViewProps {
+  searchResults?: MediaMetadata[];
+  isSearching?: boolean;
+  searchError?: string | null;
+  searchQuery?: string;
+}
 
-const discoveryMovies = [
-  { title: 'The Dark Knight', year: '2008', posterUrl: 'https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg', rating: 9.0 },
-  { title: 'Pulp Fiction', year: '1994', posterUrl: 'https://image.tmdb.org/t/p/w500/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg', rating: 8.9 },
-  { title: 'Forrest Gump', year: '1994', posterUrl: 'https://image.tmdb.org/t/p/w500/arw2vcBveWOVZr6pxd9XTd1TdQa.jpg', rating: 8.8 },
-  { title: 'The Matrix', year: '1999', posterUrl: 'https://image.tmdb.org/t/p/w500/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg', rating: 8.7 },
-  { title: 'Interstellar', year: '2014', posterUrl: 'https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg', rating: 8.6 },
-  { title: 'Parasite', year: '2019', posterUrl: 'https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg', rating: 8.6 },
-];
-
-const HomeView = () => {
+const HomeView: React.FC<HomeViewProps> = ({ 
+  searchResults = [], 
+  isSearching = false,
+  searchError = null,
+  searchQuery = ""
+}) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [popularMovies, setPopularMovies] = useState<MediaMetadata[]>([]);
+  const [popularTV, setPopularTV] = useState<MediaMetadata[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  return (
-    <div>
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-white mb-4">{t('Featured Movie')}</h2>
-        <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
-          <div className="md:flex">
-            <div className="md:flex-shrink-0">
-              <img className="h-48 w-full object-cover md:w-48" src={featuredMovie.posterUrl} alt={featuredMovie.title} />
-            </div>
-            <div className="p-8">
-              <div className="uppercase tracking-wide text-sm text-indigo-500 font-semibold">{featuredMovie.year}</div>
-              <h3 className="mt-1 text-2xl font-bold text-white">{featuredMovie.title}</h3>
-              <p className="mt-2 text-gray-400">{featuredMovie.description}</p>
-              <div className="mt-4 flex items-center">
-                <div className="flex items-center">
-                  <svg className="w-5 h-5 text-yellow-400 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                  </svg>
-                  <p className="text-lg text-white">{featuredMovie.rating.toFixed(1)}</p>
-                </div>
-              </div>
-            </div>
+  useEffect(() => {
+    const fetchPopularContent = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const [movies, tv] = await Promise.all([
+          metadataApi.getPopular("movie", 1),
+          metadataApi.getPopular("tv", 1),
+        ]);
+        
+        setPopularMovies(movies);
+        setPopularTV(tv);
+      } catch (err) {
+        console.error("Failed to fetch popular content:", err);
+        setError(err instanceof Error ? err.message : "Failed to load content");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPopularContent();
+  }, []);
+
+  const handleCardClick = (item: MediaMetadata) => {
+    const route = item.mediaType === "tv" ? `/tv/${item.id}` : `/movie/${item.id}`;
+    navigate(route);
+  };
+
+  // Show search results if searching or have results
+  if (searchQuery && (isSearching || searchResults.length > 0 || searchError)) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h2 className="text-3xl font-bold mb-2">{t("home.searchResults")}</h2>
+          <p className="text-gray-400">
+            {isSearching
+              ? t("home.searching")
+              : searchError
+              ? t("home.searchError")
+              : `Found ${searchResults.length} results for "${searchQuery}"`}
+          </p>
+        </div>
+
+        {isSearching && (
+          <div className="flex justify-center items-center py-20">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-500"></div>
           </div>
-        </div>
-      </div>
+        )}
 
-      <div>
-        <h2 className="text-2xl font-bold text-white mb-4">{t('Discover')}</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
-          {discoveryMovies.map((movie) => (
-            <MovieCard
-              key={movie.title}
-              title={movie.title}
-              year={movie.year}
-              posterUrl={movie.posterUrl}
-              rating={movie.rating}
-            />
-          ))}
-        </div>
+        {searchError && !isSearching && (
+          <div className="bg-red-900/20 border border-red-700 rounded-lg p-6 text-center">
+            <p className="text-red-400">{searchError}</p>
+          </div>
+        )}
+
+        {!isSearching && !searchError && searchResults.length === 0 && (
+          <div className="bg-gray-800/50 rounded-lg p-12 text-center">
+            <p className="text-gray-400 text-lg">{t("home.noResults")}</p>
+          </div>
+        )}
+
+        {!isSearching && searchResults.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            {searchResults.map((item) => (
+              <MovieCard
+                key={`${item.mediaType}-${item.id}`}
+                title={item.title}
+                year={item.year?.toString() || ""}
+                poster={item.poster || ""}
+                rating={item.voteAverage || 0}
+                onClick={() => handleCardClick(item)}
+              />
+            ))}
+          </div>
+        )}
       </div>
+    );
+  }
+
+  // Show popular content by default
+  return (
+    <div className="space-y-12">
+      {/* Popular Movies Section */}
+      <section>
+        <h2 className="text-3xl font-bold mb-6">{t("home.popularMovies")}</h2>
+        
+        {loading && (
+          <div className="flex justify-center items-center py-20">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-500"></div>
+          </div>
+        )}
+
+        {error && !loading && (
+          <div className="bg-red-900/20 border border-red-700 rounded-lg p-6 text-center">
+            <p className="text-red-400">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg transition"
+            >
+              {t("common.retry")}
+            </button>
+          </div>
+        )}
+
+        {!loading && !error && popularMovies.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            {popularMovies.map((movie) => (
+              <MovieCard
+                key={`movie-${movie.id}`}
+                title={movie.title}
+                year={movie.year?.toString() || ""}
+                poster={movie.poster || ""}
+                rating={movie.voteAverage || 0}
+                onClick={() => handleCardClick(movie)}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Popular TV Series Section */}
+      <section>
+        <h2 className="text-3xl font-bold mb-6">{t("home.popularTV")}</h2>
+        
+        {!loading && !error && popularTV.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            {popularTV.map((show) => (
+              <MovieCard
+                key={`tv-${show.id}`}
+                title={show.title}
+                year={show.year?.toString() || ""}
+                poster={show.poster || ""}
+                rating={show.voteAverage || 0}
+                onClick={() => handleCardClick(show)}
+              />
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 };

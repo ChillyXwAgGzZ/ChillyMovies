@@ -55,6 +55,12 @@ const resources = {
       "home.loading": "Loading recommendations...",
       "home.error": "Unable to load recommendations",
       "home.empty": "No results yet. Try searching for a title.",
+      "home.popularMovies": "Popular Movies",
+      "home.popularTV": "Popular TV Series",
+      "home.searchResults": "Search Results",
+      "home.searching": "Searching...",
+      "home.searchError": "Search failed. Please try again.",
+      "home.noResults": "No results found",
       "discovery.title": "Discover Movies & TV Shows",
       "discovery.search": "Search for titles...",
       "discovery.loading": "Loading...",
@@ -130,6 +136,20 @@ const resources = {
       "common.success": "Success",
       "common.browse": "Browse",
       "common.loading": "Loading...",
+      "common.retry": "Retry",
+      "common.back": "Back",
+      "common.goBack": "Go Back",
+
+      // Movie Details
+      "movie.releaseDate": "Release Date",
+
+      // TV Details
+      "tv.firstAirDate": "First Air Date",
+
+      // Download
+      "download.starting": "Starting...",
+      "download.started": "Download Started!",
+      "download.error": "Failed to start download",
 
       // Trailer
       "trailer.title": "Trailers",
@@ -169,6 +189,12 @@ const resources = {
       "home.loading": "Inapakia mapendekezo...",
       "home.error": "Imeshindwa kupakia mapendekezo",
       "home.empty": "Hakuna matokeo bado. Jaribu kutafuta kichwa.",
+      "home.popularMovies": "Filamu Maarufu",
+      "home.popularTV": "Vipindi Maarufu vya Runinga",
+      "home.searchResults": "Matokeo ya Utafutaji",
+      "home.searching": "Inatafuta...",
+      "home.searchError": "Utafutaji umeshindwa. Tafadhali jaribu tena.",
+      "home.noResults": "Hakuna matokeo yalipatikana",
       "discovery.title": "Gundua Filamu na Vipindi",
       "discovery.search": "Tafuta kichwa...",
       "discovery.loading": "Inapakia...",
@@ -244,6 +270,20 @@ const resources = {
       "common.success": "Imefanikiwa",
       "common.browse": "Tafuta",
       "common.loading": "Inapakia...",
+      "common.retry": "Jaribu Tena",
+      "common.back": "Rudi",
+      "common.goBack": "Rudi Nyuma",
+
+      // Movie Details
+      "movie.releaseDate": "Tarehe ya Kutolewa",
+
+      // TV Details
+      "tv.firstAirDate": "Tarehe ya Kuanza",
+
+      // Download
+      "download.starting": "Inaanza...",
+      "download.started": "Upakuaji Umeanza!",
+      "download.error": "Imeshindwa kuanza upakuaji",
 
       // Trailer
       "trailer.title": "Matangazo",
