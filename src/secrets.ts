@@ -83,7 +83,7 @@ class FallbackStorage {
         logger.info('Loaded secrets from encrypted fallback storage');
       }
     } catch (error) {
-      logger.error('Failed to load fallback storage', { error });
+      logger.error('Failed to load fallback storage', error as Error);
     }
   }
   
@@ -99,7 +99,7 @@ class FallbackStorage {
       fs.writeFileSync(FALLBACK_FILE, encrypted, { mode: 0o600 }); // Owner read/write only
       logger.info('Saved secrets to encrypted fallback storage');
     } catch (error) {
-      logger.error('Failed to save fallback storage', { error });
+      logger.error('Failed to save fallback storage', error as Error);
     }
   }
   
@@ -165,7 +165,7 @@ export class SecretsManager {
         throw new Error('Secrets manager not initialized');
       }
     } catch (error) {
-      logger.error('Failed to store secret', { key, error });
+      logger.error('Failed to store secret', error as Error, { key });
       throw error;
     }
   }
@@ -183,7 +183,7 @@ export class SecretsManager {
         throw new Error('Secrets manager not initialized');
       }
     } catch (error) {
-      logger.error('Failed to retrieve secret', { key, error });
+      logger.error('Failed to retrieve secret', error as Error, { key });
       return null;
     }
   }
@@ -209,7 +209,7 @@ export class SecretsManager {
         throw new Error('Secrets manager not initialized');
       }
     } catch (error) {
-      logger.error('Failed to delete secret', { key, error });
+      logger.error('Failed to delete secret', error as Error, { key });
       return false;
     }
   }
@@ -228,7 +228,7 @@ export class SecretsManager {
         throw new Error('Secrets manager not initialized');
       }
     } catch (error) {
-      logger.error('Failed to list secret keys', { error });
+      logger.error('Failed to list secret keys', error as Error);
       return [];
     }
   }
