@@ -1,21 +1,101 @@
-# Implementation Tasks: Chilly Movies — Offline Downloader & Player
+# Task Breakdown: Cinematic UI Overhaul
 
-This file lists prioritized engineering tasks derived from Phase 0 research (TASK-R1..TASK-R10). Each task includes: owner, priority, estimate, dependencies, acceptance criteria, and notes.
+**Date**: 2025-10-18
+**Spec**: [spec.md](./spec.md)
+**Plan**: [plan.md](./plan.md)
+**Research**: [research.md](./research.md)
+**Data Model**: [data-model.md](./data-model.md)
 
----
+This document breaks down the implementation of the new cinematic UI into actionable tasks.
 
-## TASK-R2 (High) — Prototype Downloader interface & drivers
-- Owner: eng
-- Priority: High
-- Estimate: 3 days
-- Dependencies: None
-- Description: Implement a pluggable `Downloader` interface and two reference drivers: `webtorrent-driver` (using WebTorrent) and `aria2-driver` (aria2 RPC wrapper). Provide a minimal API for start/pause/resume/cancel and emitting progress events.
-- Acceptance criteria:
-  - `Downloader` interface defined in TypeScript with start/pause/resume/cancel APIs.
-  - WebTorrent driver demonstrates downloading a small test torrent to disk and emits progress events.
-  - aria2 driver demonstrates adding a URL/magnet and managing pause/resume via aria2 RPC.
-  - Unit tests cover state transitions and error paths.
-- Notes: Use native Node streams for writes; ensure drivers write to a configurable storage location.
+## Phase 1: Cleanup and Scaffolding
+
+-   **Task 1.1: Delete Redundant UI Components**
+    -   **Description**: Remove the entire `src/renderer/components` and `src/renderer/views` directories.
+    -   **Files**: `src/renderer/components/`, `src/renderer/views/`
+    -   **Est. Time**: 0.5h
+
+-   **Task 1.2: Delete Old Configuration**
+    -   **Description**: Remove the old Tailwind and PostCSS configurations, and the previous design document.
+    -   **Files**: `tailwind.config.js`, `postcss.config.cjs`, `CINEMATIC_UI_REDESIGN.md`
+    -   **Est. Time**: 0.5h
+
+-   **Task 1.3: Reset Core UI Files**
+    -   **Description**: Overwrite `App.tsx` and `index.css` with a minimal starting structure.
+    -   **Files**: `src/renderer/App.tsx`, `src/renderer/index.css`
+    -   **Est. Time**: 0.5h
+
+-   **Task 1.4: Setup New Tailwind Configuration**
+    -   **Description**: Create the new `tailwind.config.js` and `postcss.config.cjs` based on the research document.
+    -   **Files**: `tailwind.config.js`, `postcss.config.cjs`
+    -   **Est. Time**: 0.5h
+
+-   **Task 1.5: Create New Directory Structure**
+    -   **Description**: Create the new directory structure for the renderer.
+    -   **Files**: `src/renderer/components/`, `src/renderer/views/`, `src/renderer/hooks/`, `src/renderer/state/`
+    -   **Est. Time**: 0.5h
+
+## Phase 2: Core Layout and Navigation
+
+-   **Task 2.1: Implement Main Layout and Routing**
+    -   **Description**: Create the main `App.tsx` layout with a sidebar, header, and content area. Set up `react-router-dom` with placeholder routes.
+    -   **Files**: `src/renderer/App.tsx`
+    -   **Est. Time**: 2h
+
+-   **Task 2.2: Implement Sidebar Component**
+    -   **Description**: Create the sidebar with navigation links, language selector, and branding.
+    -   **Files**: `src/renderer/components/Sidebar.tsx`
+    -   **Est. Time**: 2h
+
+-   **Task 2.3: Implement Header Component**
+    -   **Description**: Create the header with the search bar and theme toggle.
+    -   **Files**: `src/renderer/components/Header.tsx`
+    -   **Est. Time**: 1.5h
+
+## Phase 3: View Implementation
+
+-   **Task 3.1: Implement Home View**
+    -   **Description**: Create the `HomeView` to display featured movies and a grid of discovery movies.
+    -   **Files**: `src/renderer/views/HomeView.tsx`, `src/renderer/components/MovieCard.tsx`
+    -   **Est. Time**: 3h
+
+-   **Task 3.2: Implement Downloads View**
+    -   **Description**: Create the `DownloadsView` to display a list of active and completed downloads.
+    -   **Files**: `src/renderer/views/DownloadsView.tsx`
+    -   **Est. Time**: 2h
+
+-   **Task 3.3: Implement Library View**
+    -   **Description**: Create the `LibraryView` to display the user's movie collection.
+    -   **Files**: `src/renderer/views/LibraryView.tsx`
+    -   **Est. Time**: 2h
+
+-   **Task 3.4: Implement Settings View**
+    -   **Description**: Create a basic `SettingsView` with placeholders for settings.
+    -   **Files**: `src/renderer/views/SettingsView.tsx`
+    -   **Est. Time**: 1h
+
+## Phase 4: Functional Integration
+
+-   **Task 4.1: Integrate i18n**
+    -   **Description**: Wire up the `useTranslation` hook and the language switcher in the sidebar.
+    -   **Files**: `src/renderer/components/Sidebar.tsx`, `src/renderer/i18n.ts`
+    -   **Est. Time**: 1h
+
+-   **Task 4.2: Integrate Theme Switching**
+    -   **Description**: Implement the logic for the dark/light mode toggle in the header.
+    -   **Files**: `src/renderer/components/Header.tsx`
+    -   **Est. Time**: 1h
+
+-   **Task 4.3: Integrate Backend API**
+    -   **Description**: Connect the views to the backend API to fetch real data. This involves using the `electron.ipcRenderer` or a similar mechanism.
+    -   **Files**: `src/renderer/views/*.tsx`
+    -   **Est. Time**: 4h
+
+-   **Task 4.4: Final Polish and Review**
+    -   **Description**: Review the entire UI for consistency, responsiveness, and adherence to the design.
+    -   **Files**: All files in `src/renderer/`
+    -   **Est. Time**: 2h
+
 
 ## TASK-R1 (High) — SQLite FTS microbenchmark
 - Owner: eng
