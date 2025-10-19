@@ -1,5 +1,5 @@
 import { EventEmitter } from "eventemitter3";
-import { UUID, Progress } from "./types";
+import { UUID, Progress, FileSelection } from "./types";
 
 export type DownloadStatus =
   | "queued"
@@ -16,6 +16,18 @@ export interface DownloadJob {
   status: DownloadStatus;
   progress?: Progress;
   errorState?: string;
+  
+  // TV series metadata (optional)
+  metadata?: {
+    tmdbId?: number;
+    mediaType?: "movie" | "tv";
+    title?: string;
+    seasonNumber?: number;
+    episodeNumber?: number;
+  };
+  
+  // File selection for multi-file torrents (e.g., season packs)
+  fileSelection?: FileSelection;
 }
 
 export interface DownloaderEvents {
@@ -35,6 +47,10 @@ export interface Downloader {
   cancel(jobId: UUID): Promise<void>;
   getStatus(jobId: UUID): Promise<DownloadJob | null>;
   shutdown?(): Promise<void>;
+  
+  // File listing for multi-file torrents (e.g., season packs)
+  // Returns list of files in the torrent before starting download
+  listFiles?(sourceUrn: string): Promise<Array<{ index: number; path: string; size: number }>>;
   
   // EventEmitter interface
   on<K extends keyof DownloaderEvents>(event: K, listener: DownloaderEvents[K]): this;
