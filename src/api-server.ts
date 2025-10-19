@@ -673,6 +673,56 @@ export function createServer(opts?: { downloader?: any; startLimiter?: any; canc
     }
   });
 
+  // Delete library item endpoint
+  app.delete("/library/:mediaId", authMiddleware, async (req: Request, res: Response) => {
+    const { mediaId } = req.params;
+    
+    try {
+      const item = storage.getItem(mediaId);
+      
+      if (!item) {
+        res.status(404).json({ success: false, error: "Media item not found" } as ApiResponse);
+        return;
+      }
+
+      // Delete the media file if it exists
+      const mediaRoot = storage.getMediaRoot();
+      const fs = await import("fs/promises");
+      const path = await import("path");
+      
+      // Attempt to find and delete the media file
+      // This is a best-effort deletion - if file doesn't exist, we still remove from library
+      try {
+        const files = await fs.readdir(mediaRoot);
+        // Look for files that might match this media ID
+        const matchingFile = files.find((file: string) => file.includes(mediaId));
+        
+        if (matchingFile) {
+          const filePath = path.join(mediaRoot, matchingFile);
+          await fs.unlink(filePath);
+          getLogger().info(`Deleted media file: ${filePath}`, { mediaId });
+        }
+      } catch (fileErr) {
+        getLogger().warn(`Could not delete media file for ${mediaId}`, { error: String(fileErr) });
+        // Continue anyway - remove from library even if file deletion failed
+      }
+
+      // Remove from storage
+      storage.removeItem(mediaId);
+      
+      res.json({ 
+        success: true, 
+        data: { 
+          message: "Media deleted successfully",
+          deletedId: mediaId
+        } 
+      } as ApiResponse);
+    } catch (err: any) {
+      getLogger().error("Library deletion failed", err instanceof Error ? err : new Error(String(err)), { mediaId });
+      res.status(500).json({ success: false, error: String(err) } as ApiResponse);
+    }
+  });
+
   // Missing media endpoints (TASK-I6)
   app.get("/library/validate", async (req: Request, res: Response) => {
     try {

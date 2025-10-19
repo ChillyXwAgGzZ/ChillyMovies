@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Film, Play, Trash2, FolderOpen } from "lucide-react";
 import { libraryApi } from "../services/api";
+import { useToast } from "../components/Toast";
 
 interface LibraryItem {
   id: string;
@@ -22,6 +23,7 @@ interface LibraryItem {
 const LibraryView = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [items, setItems] = useState<LibraryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -52,18 +54,35 @@ const LibraryView = () => {
 
   const handleDelete = async (item: LibraryItem) => {
     const confirmed = window.confirm(
-      t("library.confirmDelete") || `Are you sure you want to delete "${item.title}"?`
+      t("library.confirmDelete") || `Are you sure you want to delete "${item.title}"? This will remove the file from your library.`
     );
     
     if (!confirmed) return;
 
+    // Optimistic UI update
+    setItems((prev) => prev.filter((i) => i.id !== item.id));
+
     try {
-      // TODO: Implement delete endpoint
-      console.log("Delete item:", item);
-      alert(t("library.deleteNotImplemented") || "Delete functionality not yet implemented");
+      await libraryApi.deleteItem(item.id);
+      
+      showToast({
+        type: 'success',
+        title: t("library.deleteSuccess") || "Media Deleted",
+        message: `${item.title} has been removed from your library`,
+        duration: 3000,
+      });
     } catch (err) {
       console.error("Failed to delete item:", err);
-      alert(t("library.deleteError") || "Failed to delete item");
+      
+      // Rollback optimistic update on error
+      setItems((prev) => [...prev, item]);
+      
+      showToast({
+        type: 'error',
+        title: t("library.deleteError") || "Delete Failed",
+        message: err instanceof Error ? err.message : "Failed to delete item",
+        duration: 4000,
+      });
     }
   };
 

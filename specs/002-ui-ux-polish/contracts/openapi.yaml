@@ -1,0 +1,332 @@
+openapi: 3.0.3
+info:
+  title: ChillyMovies UI/UX Enhancements API
+  version: 1.0.0
+  description: API extensions for library management, settings, and enhanced download metadata
+
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+
+paths:
+  /library/{mediaId}:
+    delete:
+      summary: Delete media item from library
+      operationId: deleteLibraryItem
+      tags:
+        - Library
+      parameters:
+        - name: mediaId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier for the media item
+      responses:
+        '200':
+          description: Media item deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                success: true
+                data:
+                  message: "Media deleted successfully"
+                  deletedId: "tv-12345-s01e03"
+        '404':
+          description: Media item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                success: false
+                error: "Media item not found"
+        '500':
+          description: Server error during deletion
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /library/{mediaId}/play:
+    post:
+      summary: Get playback information for media
+      operationId: getPlaybackInfo
+      tags:
+        - Library
+      parameters:
+        - name: mediaId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier for the media item
+      responses:
+        '200':
+          description: Playback information retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaybackInfo'
+        '404':
+          description: Media file not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /settings/download-path:
+    get:
+      summary: Get current download path
+      operationId: getDownloadPath
+      tags:
+        - Settings
+      responses:
+        '200':
+          description: Download path retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DownloadPathResponse'
+    
+    post:
+      summary: Set download path
+      operationId: setDownloadPath
+      tags:
+        - Settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DownloadPathRequest'
+      responses:
+        '200':
+          description: Download path updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Invalid path (doesn't exist or not writable)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /settings/theme:
+    get:
+      summary: Get current theme preference
+      operationId: getTheme
+      tags:
+        - Settings
+      responses:
+        '200':
+          description: Theme preference retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThemeResponse'
+    
+    post:
+      summary: Set theme preference
+      operationId: setTheme
+      tags:
+        - Settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThemeRequest'
+      responses:
+        '200':
+          description: Theme updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+components:
+  schemas:
+    ApiResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+        error:
+          type: string
+
+    PlaybackInfo:
+      type: object
+      required:
+        - success
+        - data
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          required:
+            - filePath
+            - fileUrl
+            - mediaType
+          properties:
+            filePath:
+              type: string
+              description: Absolute path to media file
+            fileUrl:
+              type: string
+              description: File URL for video player
+            mediaType:
+              type: string
+              enum: [movie, tv]
+            metadata:
+              type: object
+              properties:
+                title:
+                  type: string
+                duration:
+                  type: integer
+                  description: Duration in seconds
+                subtitles:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      language:
+                        type: string
+                      path:
+                        type: string
+
+    DownloadPathResponse:
+      type: object
+      required:
+        - success
+        - data
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          required:
+            - downloadPath
+          properties:
+            downloadPath:
+              type: string
+              description: Current download directory path
+            isCustom:
+              type: boolean
+              description: Whether using custom path or default
+            isWritable:
+              type: boolean
+              description: Whether path has write permissions
+
+    DownloadPathRequest:
+      type: object
+      required:
+        - path
+      properties:
+        path:
+          type: string
+          description: Absolute path to download directory
+
+    ThemeResponse:
+      type: object
+      required:
+        - success
+        - data
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          required:
+            - mode
+          properties:
+            mode:
+              type: string
+              enum: [light, dark, system]
+              description: Current theme mode
+
+    ThemeRequest:
+      type: object
+      required:
+        - mode
+      properties:
+        mode:
+          type: string
+          enum: [light, dark, system]
+          description: Theme mode to set
+
+    EnhancedDownloadJob:
+      allOf:
+        - $ref: '#/components/schemas/DownloadJob'
+        - type: object
+          properties:
+            metadata:
+              type: object
+              properties:
+                seasonNumber:
+                  type: integer
+                  description: TV show season number
+                episodeNumber:
+                  type: integer
+                  description: TV show episode number
+                episodeName:
+                  type: string
+                  description: Episode title
+                stillPath:
+                  type: string
+                  description: URL to episode thumbnail
+
+    DownloadJob:
+      type: object
+      required:
+        - id
+        - sourceType
+        - sourceUrn
+        - status
+        - progress
+      properties:
+        id:
+          type: string
+        sourceType:
+          type: string
+          enum: [torrent, youtube, http, local]
+        sourceUrn:
+          type: string
+        progress:
+          type: number
+          minimum: 0
+          maximum: 100
+        speed:
+          type: number
+          description: Download speed in bytes per second
+        eta:
+          type: number
+          description: Estimated time remaining in seconds
+        status:
+          type: string
+          enum: [queued, active, paused, completed, error]
+        peers:
+          type: integer
+        errorState:
+          type: string
+        metadata:
+          type: object
+
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      in: header
+      name: x-api-key
+
+security:
+  - ApiKey: []

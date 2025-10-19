@@ -10,6 +10,7 @@ import MovieDetailView from "./views/MovieDetailView";
 import TVDetailView from "./views/TVDetailView";
 import { metadataApi, debounce, type MediaMetadata } from "./services/api";
 import { ToastProvider } from "./components/Toast";
+import { ThemeProvider } from "./context/ThemeContext";
 
 function AppContent() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -89,11 +90,13 @@ function AppContent() {
 
 function App() {
   return (
-    <ToastProvider>
-      <Router>
-        <AppContent />
-      </Router>
-    </ToastProvider>
+    <ThemeProvider>
+      <ToastProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </ToastProvider>
+    </ThemeProvider>
   );
 }
 

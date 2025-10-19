@@ -1,9 +1,12 @@
 // src/renderer/views/SettingsView.tsx
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Sun, Moon, Monitor } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 const SettingsView = () => {
   const { t } = useTranslation();
+  const { theme, setTheme } = useTheme();
   const [settings, setSettings] = useState({
     downloadPath: '/Users/chilly/Downloads',
     downloadLimit: 0, // 0 for unlimited
@@ -28,10 +31,61 @@ const SettingsView = () => {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-white mb-6">{t('Settings')}</h2>
+      <h2 className="text-2xl font-bold text-white dark:text-white mb-6">{t('Settings')}</h2>
       <div className="space-y-8">
+        {/* Appearance Settings */}
+        <div className="bg-gray-800 dark:bg-gray-800 p-6 rounded-lg border border-gray-700">
+          <h3 className="text-lg font-semibold text-white mb-4">{t('Appearance')}</h3>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-3">
+              {t('Theme')}
+            </label>
+            <div className="grid grid-cols-3 gap-3">
+              <button
+                onClick={() => setTheme('light')}
+                className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition ${
+                  theme === 'light'
+                    ? 'border-indigo-500 bg-indigo-500/10'
+                    : 'border-gray-700 hover:border-gray-600 bg-gray-700/30'
+                }`}
+              >
+                <Sun className={`h-6 w-6 ${theme === 'light' ? 'text-indigo-400' : 'text-gray-400'}`} />
+                <span className={`text-sm font-medium ${theme === 'light' ? 'text-white' : 'text-gray-400'}`}>
+                  {t('Light')}
+                </span>
+              </button>
+              <button
+                onClick={() => setTheme('dark')}
+                className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition ${
+                  theme === 'dark'
+                    ? 'border-indigo-500 bg-indigo-500/10'
+                    : 'border-gray-700 hover:border-gray-600 bg-gray-700/30'
+                }`}
+              >
+                <Moon className={`h-6 w-6 ${theme === 'dark' ? 'text-indigo-400' : 'text-gray-400'}`} />
+                <span className={`text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-400'}`}>
+                  {t('Dark')}
+                </span>
+              </button>
+              <button
+                onClick={() => setTheme('system')}
+                className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition ${
+                  theme === 'system'
+                    ? 'border-indigo-500 bg-indigo-500/10'
+                    : 'border-gray-700 hover:border-gray-600 bg-gray-700/30'
+                }`}
+              >
+                <Monitor className={`h-6 w-6 ${theme === 'system' ? 'text-indigo-400' : 'text-gray-400'}`} />
+                <span className={`text-sm font-medium ${theme === 'system' ? 'text-white' : 'text-gray-400'}`}>
+                  {t('System')}
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Download Settings */}
-        <div className="bg-gray-800 p-6 rounded-lg">
+        <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
           <h3 className="text-lg font-semibold text-white mb-4">{t('Downloads')}</h3>
           <div className="space-y-4">
             <div>
@@ -86,7 +140,7 @@ const SettingsView = () => {
         </div>
 
         {/* Privacy Settings */}
-        <div className="bg-gray-800 p-6 rounded-lg">
+        <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
           <h3 className="text-lg font-semibold text-white mb-4">{t('Privacy')}</h3>
           <div className="flex items-center">
             <input
