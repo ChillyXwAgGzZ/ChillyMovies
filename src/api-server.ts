@@ -317,6 +317,167 @@ export function createServer(opts?: { downloader?: any; startLimiter?: any; canc
     }
   });
 
+  // List files in a torrent (for season packs)
+  app.post("/download/list-files", authMiddleware, async (req: Request, res: Response) => {
+    const { magnetLink } = req.body as { magnetLink: string };
+    
+    if (!magnetLink) {
+      res.status(400).json({ success: false, error: "Missing magnetLink" } as ApiResponse);
+      return;
+    }
+
+    try {
+      // Check if downloader supports file listing
+      if (typeof (downloader as any).listFiles !== 'function') {
+        res.status(501).json({ 
+          success: false, 
+          error: "Current downloader does not support file listing. Use Aria2 downloader." 
+        } as ApiResponse);
+        return;
+      }
+
+      const files = await (downloader as any).listFiles(magnetLink);
+      res.json({ success: true, data: files } as ApiResponse);
+      
+    } catch (err: any) {
+      getLogger().error("Failed to list torrent files", err instanceof Error ? err : new Error(String(err)));
+      res.status(500).json({ success: false, error: String(err) } as ApiResponse);
+    }
+  });
+
+  // Start batch download (for TV series episodes)
+  app.post("/download/batch", authMiddleware, startLimiter, async (req: Request, res: Response) => {
+    const body = req.body as StartDownloadRequest;
+    
+    if (!body.tmdbId || !body.mediaType || body.mediaType !== 'tv') {
+      res.status(400).json({ 
+        success: false, 
+        error: "Batch downloads require tmdbId and mediaType='tv'" 
+      } as ApiResponse);
+      return;
+    }
+
+    if (!body.batchDownload) {
+      res.status(400).json({ 
+        success: false, 
+        error: "Missing batchDownload configuration" 
+      } as ApiResponse);
+      return;
+    }
+
+    try {
+      const batchId = `batch-${body.tmdbId}-s${body.seasonNumber || 'all'}-${Date.now()}`;
+      const downloads: string[] = [];
+
+      // Handle full season download
+      if (body.batchDownload.fullSeason && body.seasonNumber) {
+        // Search for season pack
+        const searchQuery = `${body.title} S${String(body.seasonNumber).padStart(2, '0')} ${body.quality || '1080p'}`;
+        getLogger().info(`Searching for season pack: ${searchQuery}`, { context: "batch-download" });
+
+        const searchResults = await torrentSearch.search(searchQuery, {
+          limit: 10,
+          quality: body.quality ? [body.quality] : ['1080p', '720p'],
+          minSeeders: 5,
+          type: 'tv',
+        });
+
+        if (searchResults.length === 0) {
+          res.status(404).json({ 
+            success: false, 
+            error: "No season pack found. Try individual episodes." 
+          } as ApiResponse);
+          return;
+        }
+
+        const bestTorrent = searchResults.sort((a, b) => b.seeders - a.seeders)[0];
+        const jobId = `${body.mediaType}-${body.tmdbId}-s${body.seasonNumber}-${Date.now()}`;
+
+        const job: any = {
+          id: jobId,
+          sourceType: "torrent",
+          sourceUrn: bestTorrent.magnetLink,
+          status: "queued",
+          metadata: {
+            tmdbId: body.tmdbId,
+            mediaType: body.mediaType,
+            seasonNumber: body.seasonNumber,
+            quality: body.quality || '1080p',
+            batchId,
+          },
+          fileSelection: body.fileSelection,
+        };
+
+        await downloader.start(job);
+        downloads.push(jobId);
+      }
+      // Handle specific episodes
+      else if (body.batchDownload.episodes && body.batchDownload.episodes.length > 0) {
+        const mode = body.batchDownload.mode || 'sequential';
+        
+        for (const episode of body.batchDownload.episodes) {
+          const searchQuery = `${body.title} S${String(episode.seasonNumber).padStart(2, '0')}E${String(episode.episodeNumber).padStart(2, '0')} ${body.quality || '1080p'}`;
+          getLogger().info(`Searching for episode: ${searchQuery}`, { context: "batch-download" });
+
+          try {
+            const searchResults = await torrentSearch.search(searchQuery, {
+              limit: 5,
+              quality: body.quality ? [body.quality] : ['1080p', '720p'],
+              minSeeders: 3,
+              type: 'tv',
+            });
+
+            if (searchResults.length === 0) {
+              getLogger().warn(`No torrent found for ${searchQuery}`);
+              continue;
+            }
+
+            const bestTorrent = searchResults.sort((a, b) => b.seeders - a.seeders)[0];
+            const jobId = `${body.mediaType}-${body.tmdbId}-s${episode.seasonNumber}e${episode.episodeNumber}-${Date.now()}`;
+
+            const job: any = {
+              id: jobId,
+              sourceType: "torrent",
+              sourceUrn: bestTorrent.magnetLink,
+              status: "queued",
+              metadata: {
+                tmdbId: body.tmdbId,
+                mediaType: body.mediaType,
+                seasonNumber: episode.seasonNumber,
+                episodeNumber: episode.episodeNumber,
+                quality: body.quality || '1080p',
+                batchId,
+              },
+            };
+
+            await downloader.start(job);
+            downloads.push(jobId);
+
+            // For sequential mode, add a small delay between episodes
+            if (mode === 'sequential') {
+              await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+          } catch (err: any) {
+            getLogger().error(`Failed to start download for episode ${searchQuery}`, err instanceof Error ? err : new Error(String(err)));
+          }
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        data: { 
+          batchId, 
+          downloads,
+          total: downloads.length,
+        } 
+      } as ApiResponse);
+
+    } catch (err: any) {
+      getLogger().error("Batch download failed", err instanceof Error ? err : new Error(String(err)), { body });
+      res.status(500).json({ success: false, error: String(err) } as ApiResponse);
+    }
+  });
+
   // Metadata endpoints
   const metadata = new TMDBMetadataFetcher({ enableCache: true });
 

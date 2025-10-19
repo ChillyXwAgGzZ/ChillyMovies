@@ -316,14 +316,24 @@ export class Aria2Downloader extends EventEmitter implements Downloader {
     }
 
     try {
+      const options: any = {
+        dir: this.options.downloadDir,
+        'bt-metadata-only': 'false',
+        'bt-save-metadata': 'true',
+        'follow-torrent': 'true',
+      };
+
+      // Handle file selection for multi-file torrents (e.g., season packs)
+      if (job.fileSelection?.fileIndices && job.fileSelection.fileIndices.length > 0) {
+        // Select specific files by index (1-based in aria2)
+        const indices = job.fileSelection.fileIndices.map(i => i + 1).join(',');
+        options['select-file'] = indices;
+        logger.info(`Selecting files by index for download`, { jobId: job.id, indices });
+      }
+
       const gid = await this.rpcCall('aria2.addUri', [
         [job.sourceUrn],
-        {
-          dir: this.options.downloadDir,
-          'bt-metadata-only': 'false',
-          'bt-save-metadata': 'true',
-          'follow-torrent': 'true',
-        }
+        options
       ]);
 
       this.jobs.set(job.id, { gid, job });
@@ -334,6 +344,66 @@ export class Aria2Downloader extends EventEmitter implements Downloader {
 
     } catch (error) {
       logger.error('Failed to start download', error as Error, { jobId: job.id });
+      throw error;
+    }
+  }
+
+  /**
+   * List files in a torrent without starting the download
+   * Useful for season packs to let users select which episodes to download
+   */
+  async listFiles(sourceUrn: string): Promise<Array<{ index: number; path: string; size: number }>> {
+    try {
+      // Add torrent in metadata-only mode to fetch file list
+      const gid = await this.rpcCall('aria2.addUri', [
+        [sourceUrn],
+        {
+          'bt-metadata-only': 'true',
+          'bt-save-metadata': 'false',
+        }
+      ]);
+
+      // Wait for metadata to be fetched
+      let attempts = 0;
+      const maxAttempts = 30;
+      
+      while (attempts < maxAttempts) {
+        const status = await this.getAria2Status(gid);
+        
+        if (status && status.files && status.files.length > 0) {
+          // Remove the metadata-only download
+          try {
+            await this.rpcCall('aria2.forceRemove', [gid]);
+          } catch {
+            // Ignore errors when removing
+          }
+
+          return status.files.map((file, index) => ({
+            index,
+            path: file.path,
+            size: parseInt(file.length),
+          }));
+        }
+
+        if (status?.status === 'complete' || status?.status === 'error') {
+          break;
+        }
+
+        attempts++;
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+
+      // Clean up if we didn't get file list
+      try {
+        await this.rpcCall('aria2.forceRemove', [gid]);
+      } catch {
+        // Ignore errors
+      }
+
+      throw new Error('Failed to fetch torrent file list - timeout or metadata unavailable');
+
+    } catch (error) {
+      logger.error('Failed to list torrent files', error as Error);
       throw error;
     }
   }

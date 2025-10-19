@@ -42,9 +42,38 @@ export class StorageManager {
           metadata_json TEXT,
           created_at TEXT
         );
+        
+        CREATE TABLE IF NOT EXISTS tv_episodes (
+          id TEXT PRIMARY KEY,
+          tmdb_id INTEGER,
+          season_number INTEGER,
+          episode_number INTEGER,
+          title TEXT,
+          download_id TEXT,
+          status TEXT,
+          metadata_json TEXT,
+          created_at TEXT,
+          UNIQUE(tmdb_id, season_number, episode_number)
+        );
+        
+        CREATE TABLE IF NOT EXISTS batch_downloads (
+          batch_id TEXT PRIMARY KEY,
+          tmdb_id INTEGER,
+          season_number INTEGER,
+          total_episodes INTEGER,
+          completed_episodes INTEGER,
+          failed_episodes INTEGER,
+          status TEXT,
+          created_at TEXT,
+          updated_at TEXT
+        );
       `);
     } else {
-      // json store already created
+      // json store already created with additional structures
+      const obj = JSON.parse(fs.readFileSync(this.db.jsonPath, "utf8"));
+      if (!obj.tv_episodes) obj.tv_episodes = {};
+      if (!obj.batch_downloads) obj.batch_downloads = {};
+      fs.writeFileSync(this.db.jsonPath, JSON.stringify(obj));
     }
   }
 
@@ -114,6 +143,190 @@ export class StorageManager {
       if (fs.existsSync(p)) fs.unlinkSync(p);
     } catch (e) {
       // ignore
+    }
+  }
+
+  // TV Episode tracking
+  addTVEpisode(tmdbId: number, seasonNumber: number, episodeNumber: number, title: string, downloadId: string, metadata: object = {}) {
+    const id = `tv-${tmdbId}-s${seasonNumber}e${episodeNumber}`;
+    
+    if (Database) {
+      const stmt = this.db.prepare(`
+        INSERT OR REPLACE INTO tv_episodes 
+        (id, tmdb_id, season_number, episode_number, title, download_id, status, metadata_json, created_at) 
+        VALUES (?, ?, ?, ?, ?, ?, 'downloading', ?, datetime('now'))
+      `);
+      stmt.run(id, tmdbId, seasonNumber, episodeNumber, title, downloadId, JSON.stringify(metadata));
+    } else {
+      const obj = JSON.parse(fs.readFileSync(this.db.jsonPath, "utf8"));
+      obj.tv_episodes[id] = {
+        id,
+        tmdb_id: tmdbId,
+        season_number: seasonNumber,
+        episode_number: episodeNumber,
+        title,
+        download_id: downloadId,
+        status: 'downloading',
+        metadata,
+        created_at: new Date().toISOString(),
+      };
+      fs.writeFileSync(this.db.jsonPath, JSON.stringify(obj));
+    }
+  }
+
+  updateEpisodeStatus(tmdbId: number, seasonNumber: number, episodeNumber: number, status: string) {
+    const id = `tv-${tmdbId}-s${seasonNumber}e${episodeNumber}`;
+    
+    if (Database) {
+      const stmt = this.db.prepare("UPDATE tv_episodes SET status = ? WHERE id = ?");
+      stmt.run(status, id);
+    } else {
+      const obj = JSON.parse(fs.readFileSync(this.db.jsonPath, "utf8"));
+      if (obj.tv_episodes[id]) {
+        obj.tv_episodes[id].status = status;
+        fs.writeFileSync(this.db.jsonPath, JSON.stringify(obj));
+      }
+    }
+  }
+
+  getTVEpisodes(tmdbId: number, seasonNumber?: number) {
+    if (Database) {
+      let query = "SELECT * FROM tv_episodes WHERE tmdb_id = ?";
+      const params: any[] = [tmdbId];
+      
+      if (seasonNumber !== undefined) {
+        query += " AND season_number = ?";
+        params.push(seasonNumber);
+      }
+      
+      query += " ORDER BY season_number, episode_number";
+      
+      const rows = this.db.prepare(query).all(...params);
+      return rows.map((row: any) => ({
+        id: row.id,
+        tmdbId: row.tmdb_id,
+        seasonNumber: row.season_number,
+        episodeNumber: row.episode_number,
+        title: row.title,
+        downloadId: row.download_id,
+        status: row.status,
+        metadata: JSON.parse(row.metadata_json || '{}'),
+        createdAt: row.created_at,
+      }));
+    } else {
+      const obj = JSON.parse(fs.readFileSync(this.db.jsonPath, "utf8"));
+      return Object.values(obj.tv_episodes || {})
+        .filter((ep: any) => {
+          if (ep.tmdb_id !== tmdbId) return false;
+          if (seasonNumber !== undefined && ep.season_number !== seasonNumber) return false;
+          return true;
+        })
+        .sort((a: any, b: any) => {
+          if (a.season_number !== b.season_number) return a.season_number - b.season_number;
+          return a.episode_number - b.episode_number;
+        });
+    }
+  }
+
+  // Batch download tracking
+  createBatchDownload(batchId: string, tmdbId: number, seasonNumber: number, totalEpisodes: number) {
+    if (Database) {
+      const stmt = this.db.prepare(`
+        INSERT INTO batch_downloads 
+        (batch_id, tmdb_id, season_number, total_episodes, completed_episodes, failed_episodes, status, created_at, updated_at) 
+        VALUES (?, ?, ?, ?, 0, 0, 'active', datetime('now'), datetime('now'))
+      `);
+      stmt.run(batchId, tmdbId, seasonNumber, totalEpisodes);
+    } else {
+      const obj = JSON.parse(fs.readFileSync(this.db.jsonPath, "utf8"));
+      obj.batch_downloads[batchId] = {
+        batch_id: batchId,
+        tmdb_id: tmdbId,
+        season_number: seasonNumber,
+        total_episodes: totalEpisodes,
+        completed_episodes: 0,
+        failed_episodes: 0,
+        status: 'active',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      fs.writeFileSync(this.db.jsonPath, JSON.stringify(obj));
+    }
+  }
+
+  updateBatchDownload(batchId: string, updates: { completed?: number; failed?: number; status?: string }) {
+    if (Database) {
+      const parts: string[] = [];
+      const params: any[] = [];
+      
+      if (updates.completed !== undefined) {
+        parts.push("completed_episodes = ?");
+        params.push(updates.completed);
+      }
+      if (updates.failed !== undefined) {
+        parts.push("failed_episodes = ?");
+        params.push(updates.failed);
+      }
+      if (updates.status) {
+        parts.push("status = ?");
+        params.push(updates.status);
+      }
+      
+      parts.push("updated_at = datetime('now')");
+      params.push(batchId);
+      
+      const stmt = this.db.prepare(`UPDATE batch_downloads SET ${parts.join(', ')} WHERE batch_id = ?`);
+      stmt.run(...params);
+    } else {
+      const obj = JSON.parse(fs.readFileSync(this.db.jsonPath, "utf8"));
+      if (obj.batch_downloads[batchId]) {
+        if (updates.completed !== undefined) obj.batch_downloads[batchId].completed_episodes = updates.completed;
+        if (updates.failed !== undefined) obj.batch_downloads[batchId].failed_episodes = updates.failed;
+        if (updates.status) obj.batch_downloads[batchId].status = updates.status;
+        obj.batch_downloads[batchId].updated_at = new Date().toISOString();
+        fs.writeFileSync(this.db.jsonPath, JSON.stringify(obj));
+      }
+    }
+  }
+
+  getBatchDownload(batchId: string) {
+    if (Database) {
+      const row = this.db.prepare("SELECT * FROM batch_downloads WHERE batch_id = ?").get(batchId);
+      if (!row) return null;
+      return {
+        batchId: row.batch_id,
+        tmdbId: row.tmdb_id,
+        seasonNumber: row.season_number,
+        totalEpisodes: row.total_episodes,
+        completedEpisodes: row.completed_episodes,
+        failedEpisodes: row.failed_episodes,
+        status: row.status,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      };
+    } else {
+      const obj = JSON.parse(fs.readFileSync(this.db.jsonPath, "utf8"));
+      return obj.batch_downloads[batchId] || null;
+    }
+  }
+
+  getAllBatchDownloads() {
+    if (Database) {
+      const rows = this.db.prepare("SELECT * FROM batch_downloads ORDER BY created_at DESC").all();
+      return rows.map((row: any) => ({
+        batchId: row.batch_id,
+        tmdbId: row.tmdb_id,
+        seasonNumber: row.season_number,
+        totalEpisodes: row.total_episodes,
+        completedEpisodes: row.completed_episodes,
+        failedEpisodes: row.failed_episodes,
+        status: row.status,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      }));
+    } else {
+      const obj = JSON.parse(fs.readFileSync(this.db.jsonPath, "utf8"));
+      return Object.values(obj.batch_downloads || {});
     }
   }
 }

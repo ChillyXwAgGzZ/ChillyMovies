@@ -67,6 +67,44 @@ Chilly Movies provides reliable offline playback and local library management wi
 - **Bilingual**: Full support for English and Swahili (Kiswahili)
 - **Accessible**: WCAG 2.1 AA compliance with keyboard navigation and screen reader support
 
+## ✨ Features
+
+### 🎬 Movies & TV Series
+- **Full TV Series Support**: Browse seasons, episodes with complete TMDB metadata
+- **Batch Downloads**: Download entire seasons or specific episodes
+- **Smart Episode Selection**: Selectively download episodes from season packs
+- **Metadata Rich**: Episode titles, air dates, overviews, ratings, and thumbnails
+- **TMDB Integration**: Comprehensive movie and TV show information
+
+### 📥 Download Management
+- **Multiple Download Engines**: WebTorrent and ARIA2 support
+- **Selective File Downloads**: Choose specific files from multi-file torrents
+- **Batch Processing**: Download multiple episodes in sequential or parallel mode
+- **Resume Support**: Automatically resume interrupted downloads
+- **Progress Tracking**: Real-time download progress with SSE
+- **Torrent Search**: Integrated search across multiple providers
+
+### 📚 Library Management
+- **Local Storage**: All media stored on your device
+- **Metadata Caching**: Fast access with intelligent caching
+- **Missing Media Detection**: Identify and relink missing files
+- **Export/Import**: Backup and restore your library
+- **Subtitle Management**: Auto-detect and manage subtitle tracks
+
+### 🛡️ Privacy & Security
+- **Local-First**: No cloud dependencies
+- **Optional Telemetry**: Explicit opt-in only
+- **Secure Storage**: Encrypted credential storage
+- **API Authentication**: Optional API key protection
+- **No Tracking**: Your data stays on your device
+
+### 🌍 Accessibility & i18n
+- **Bilingual**: English and Swahili (Kiswahili)
+- **WCAG 2.1 AA**: Full accessibility compliance
+- **Keyboard Navigation**: Complete keyboard support
+- **Screen Reader**: Comprehensive ARIA labels
+- **Reduced Motion**: Respects motion preferences
+
 ## 🚀 Quick Start
 
 ### Prerequisites
