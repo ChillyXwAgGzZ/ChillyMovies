@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from "electron";
+import { app, BrowserWindow, ipcMain, dialog } from "electron";
 import path from "path";
 import { config } from "dotenv";
 import { createServer } from "../api-server";
@@ -189,6 +189,25 @@ function setupIpcHandlers(backendPort: number) {
 
   ipcMain.handle("app:get-path", (_event, name: string) => {
     return app.getPath(name as any);
+  });
+
+  // Dialog handlers
+  ipcMain.handle("dialog:select-directory", async () => {
+    if (!mainWindow) {
+      throw new Error("No main window available");
+    }
+
+    const result = await dialog.showOpenDialog(mainWindow, {
+      properties: ["openDirectory", "createDirectory"],
+      title: "Select Download Location",
+      buttonLabel: "Select",
+    });
+
+    if (result.canceled || result.filePaths.length === 0) {
+      return null;
+    }
+
+    return result.filePaths[0];
   });
 }
 

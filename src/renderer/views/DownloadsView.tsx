@@ -14,6 +14,15 @@ interface DownloadItem {
   uploadSpeed?: number;
   bytesDownloaded?: number;
   bytesTotal?: number;
+  metadata?: {
+    tmdbId?: number;
+    mediaType?: "movie" | "tv";
+    quality?: string;
+    seasonNumber?: number;
+    episodeNumber?: number;
+    episodeName?: string;
+    stillPath?: string;
+  };
 }
 
 interface ProgressEvent {
@@ -63,7 +72,7 @@ const DownloadsView = () => {
   const subscribeToProgress = useCallback((id: string) => {
     if (eventSources.has(id)) return; // Already subscribed
 
-    const eventSource = createResilientEventSource(`http://localhost:3000/events/${id}`);
+    const eventSource = new EventSource(`http://localhost:3000/events/${id}`);
 
     eventSource.onmessage = (event) => {
       try {
@@ -157,14 +166,27 @@ const DownloadsView = () => {
       try {
         const incomplete = await downloadApi.getIncomplete();
         
-        const items: DownloadItem[] = incomplete.map((dl: any) => ({
-          id: dl.id,
-          title: dl.title || dl.id,
-          status: dl.status || "pending",
-          progress: dl.progress?.percent || 0,
-          speed: dl.progress?.downloadSpeed ? formatSpeed(dl.progress.downloadSpeed) : undefined,
-          eta: dl.progress?.timeRemaining ? formatTime(dl.progress.timeRemaining) : undefined,
-        }));
+        const items: DownloadItem[] = incomplete.map((dl: any) => {
+          // Format title for TV episodes
+          let displayTitle = dl.title || dl.id;
+          if (dl.metadata?.mediaType === 'tv' && dl.metadata?.seasonNumber && dl.metadata?.episodeNumber) {
+            const season = String(dl.metadata.seasonNumber).padStart(2, '0');
+            const episode = String(dl.metadata.episodeNumber).padStart(2, '0');
+            displayTitle = dl.metadata.episodeName 
+              ? `S${season}E${episode}: ${dl.metadata.episodeName}`
+              : `Season ${dl.metadata.seasonNumber} Episode ${dl.metadata.episodeNumber}`;
+          }
+          
+          return {
+            id: dl.id,
+            title: displayTitle,
+            status: dl.status || "pending",
+            progress: dl.progress?.percent || 0,
+            speed: dl.progress?.downloadSpeed ? formatSpeed(dl.progress.downloadSpeed) : undefined,
+            eta: dl.progress?.timeRemaining ? formatTime(dl.progress.timeRemaining) : undefined,
+            metadata: dl.metadata,
+          };
+        });
 
         setDownloads(items);
 
@@ -286,12 +308,30 @@ const DownloadsView = () => {
           {downloads.map((item) => (
             <li key={item.id} className="p-6 hover:bg-gray-800/70 transition">
               <div className="flex items-start gap-4">
-                {/* Status Icon */}
-                <div className="mt-1">{getStatusIcon(item.status)}</div>
+                {/* Episode Thumbnail or Status Icon */}
+                {item.metadata?.stillPath ? (
+                  <img
+                    src={item.metadata.stillPath}
+                    alt={item.title}
+                    className="w-24 h-14 object-cover rounded flex-shrink-0"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="mt-1">{getStatusIcon(item.status)}</div>
+                )}
 
                 {/* Download Info */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-white font-medium mb-2 truncate">{item.title}</p>
+                  <div className="flex items-start gap-2 mb-2">
+                    <p className="text-white font-medium truncate flex-1">{item.title}</p>
+                    {item.metadata?.quality && (
+                      <span className="px-2 py-0.5 bg-indigo-600/20 border border-indigo-600 rounded text-xs font-semibold text-indigo-400">
+                        {item.metadata.quality}
+                      </span>
+                    )}
+                  </div>
 
                   {/* Progress Bar */}
                   <div className="flex items-center gap-3 mb-2">

@@ -1,15 +1,21 @@
 // src/renderer/views/SettingsView.tsx
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Sun, Moon, Monitor, FolderOpen } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
+import { useToast } from '../components/Toast';
 
 const SettingsView = () => {
   const { t } = useTranslation();
+  const { theme, setTheme } = useTheme();
+  const { showToast } = useToast();
   const [settings, setSettings] = useState({
     downloadPath: '/Users/chilly/Downloads',
     downloadLimit: 0, // 0 for unlimited
     uploadLimit: 0, // 0 for unlimited
     telemetry: true,
   });
+  const [isSelectingPath, setIsSelectingPath] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -26,29 +32,135 @@ const SettingsView = () => {
     }));
   };
 
+  const handleBrowseDirectory = async () => {
+    // Check if running in Electron
+    if (!window.electronAPI) {
+      showToast({
+        type: 'warning',
+        title: t('settings.electronRequired') || 'Feature Not Available',
+        message: t('settings.electronRequiredMessage') || 'This feature requires the desktop app. In development mode, you can manually enter the path.',
+        duration: 4000,
+      });
+      return;
+    }
+
+    try {
+      setIsSelectingPath(true);
+      const selectedPath = await window.electronAPI.dialog.selectDirectory();
+      
+      if (selectedPath) {
+        setSettings(prev => ({
+          ...prev,
+          downloadPath: selectedPath,
+        }));
+        showToast({
+          type: 'success',
+          title: t('settings.pathUpdated') || 'Path Updated',
+          message: `Download location set to: ${selectedPath}`,
+          duration: 3000,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to select directory:', err);
+      showToast({
+        type: 'error',
+        title: t('settings.pathError') || 'Selection Failed',
+        message: t('settings.pathErrorMessage') || 'Failed to select directory. Please try again.',
+        duration: 4000,
+      });
+    } finally {
+      setIsSelectingPath(false);
+    }
+  };
+
   return (
     <div>
-      <h2 className="text-2xl font-bold text-white mb-6">{t('Settings')}</h2>
+      <h2 className="text-2xl font-bold text-white dark:text-white mb-6">{t('Settings')}</h2>
       <div className="space-y-8">
+        {/* Appearance Settings */}
+        <div className="bg-gray-800 dark:bg-gray-800 p-6 rounded-lg border border-gray-700">
+          <h3 className="text-lg font-semibold text-white mb-4">{t('Appearance')}</h3>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-3">
+              {t('Theme')}
+            </label>
+            <div className="grid grid-cols-3 gap-3">
+              <button
+                onClick={() => setTheme('light')}
+                className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition ${
+                  theme === 'light'
+                    ? 'border-indigo-500 bg-indigo-500/10'
+                    : 'border-gray-700 hover:border-gray-600 bg-gray-700/30'
+                }`}
+              >
+                <Sun className={`h-6 w-6 ${theme === 'light' ? 'text-indigo-400' : 'text-gray-400'}`} />
+                <span className={`text-sm font-medium ${theme === 'light' ? 'text-white' : 'text-gray-400'}`}>
+                  {t('Light')}
+                </span>
+              </button>
+              <button
+                onClick={() => setTheme('dark')}
+                className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition ${
+                  theme === 'dark'
+                    ? 'border-indigo-500 bg-indigo-500/10'
+                    : 'border-gray-700 hover:border-gray-600 bg-gray-700/30'
+                }`}
+              >
+                <Moon className={`h-6 w-6 ${theme === 'dark' ? 'text-indigo-400' : 'text-gray-400'}`} />
+                <span className={`text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-400'}`}>
+                  {t('Dark')}
+                </span>
+              </button>
+              <button
+                onClick={() => setTheme('system')}
+                className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition ${
+                  theme === 'system'
+                    ? 'border-indigo-500 bg-indigo-500/10'
+                    : 'border-gray-700 hover:border-gray-600 bg-gray-700/30'
+                }`}
+              >
+                <Monitor className={`h-6 w-6 ${theme === 'system' ? 'text-indigo-400' : 'text-gray-400'}`} />
+                <span className={`text-sm font-medium ${theme === 'system' ? 'text-white' : 'text-gray-400'}`}>
+                  {t('System')}
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Download Settings */}
-        <div className="bg-gray-800 p-6 rounded-lg">
+        <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
           <h3 className="text-lg font-semibold text-white mb-4">{t('Downloads')}</h3>
           <div className="space-y-4">
             <div>
               <label htmlFor="downloadPath" className="block text-sm font-medium text-gray-300 mb-1">
                 {t('Download Location')}
               </label>
-              <div className="flex">
+              <div className="flex gap-2">
                 <input
                   type="text"
                   id="downloadPath"
                   name="downloadPath"
                   value={settings.downloadPath}
                   onChange={handleInputChange}
-                  className="flex-grow bg-gray-700 border border-gray-600 rounded-l-md px-3 py-2 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="flex-grow bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 />
-                <button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-r-md">
-                  {t('Browse')}
+                <button 
+                  onClick={handleBrowseDirectory}
+                  disabled={isSelectingPath}
+                  className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded-md flex items-center gap-2 transition"
+                >
+                  {isSelectingPath ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      {t('settings.selecting') || 'Selecting...'}
+                    </>
+                  ) : (
+                    <>
+                      <FolderOpen className="h-4 w-4" />
+                      {t('Browse')}
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -86,7 +198,7 @@ const SettingsView = () => {
         </div>
 
         {/* Privacy Settings */}
-        <div className="bg-gray-800 p-6 rounded-lg">
+        <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
           <h3 className="text-lg font-semibold text-white mb-4">{t('Privacy')}</h3>
           <div className="flex items-center">
             <input

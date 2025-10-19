@@ -298,6 +298,15 @@ export const libraryApi = {
   },
 
   /**
+   * Delete a library item
+   */
+  async deleteItem(mediaId: string): Promise<{ message: string; deletedId: string }> {
+    return apiFetch<{ message: string; deletedId: string }>(`/library/${mediaId}`, {
+      method: "DELETE",
+    });
+  },
+
+  /**
    * Validate library integrity
    */
   async validate(): Promise<any> {
