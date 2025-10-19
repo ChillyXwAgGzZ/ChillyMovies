@@ -122,6 +122,17 @@ export class StorageManager {
     return this.getMediaItem(id);
   }
 
+  removeItem(id: string) {
+    if (Database) {
+      const stmt = this.db.prepare("DELETE FROM media_items WHERE id = ?");
+      stmt.run(id);
+    } else {
+      const obj = JSON.parse(fs.readFileSync(this.db.jsonPath, "utf8"));
+      delete obj.media_items[id];
+      fs.writeFileSync(this.db.jsonPath, JSON.stringify(obj));
+    }
+  }
+
   // Partial file helpers used by downloaders to resume/cleanup
   getPartialPath(id: string) {
     return path.join(this.mediaRoot, `${id}.partial`);
