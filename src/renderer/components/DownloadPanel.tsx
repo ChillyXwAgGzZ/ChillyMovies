@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Download, X, HardDrive, Users, Gauge } from "lucide-react";
 import { downloadApi, torrentApi, ApiError } from "../services/api";
+import { useToast } from "./Toast";
 
 interface TorrentResult {
   id: string;
@@ -30,6 +31,7 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
   onClose,
 }) => {
   const { t } = useTranslation();
+  const { showToast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedQuality, setSelectedQuality] = useState<string>("1080p");
   const [torrents, setTorrents] = useState<TorrentResult[]>([]);
@@ -58,7 +60,7 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
       } else {
         setTorrents(results);
         // Auto-select the best torrent (highest seeders)
-        const best = results.sort((a, b) => b.seeders - a.seeders)[0];
+        const best = results.sort((a: TorrentResult, b: TorrentResult) => b.seeders - a.seeders)[0];
         setSelectedTorrent(best);
       }
     } catch (err) {
@@ -91,11 +93,19 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
 
       console.log("Download started:", result);
       
+      // Show success toast
+      showToast({
+        type: 'success',
+        title: t("download.started") || "Download Started!",
+        message: `${title} (${selectedQuality}) is downloading`,
+        duration: 4000,
+      });
+      
       if (onDownloadStarted) {
         onDownloadStarted(result.id);
       }
 
-      // Close panel and show success
+      // Close panel with animation
       setIsOpen(false);
       if (onClose) {
         onClose();
@@ -105,9 +115,17 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
       const friendlyMessage = err instanceof ApiError
         ? err.response?.error || err.message
         : undefined;
-      setError(
-        friendlyMessage || t("download.error") || "Failed to start download. Please try again."
-      );
+      const errorMessage = friendlyMessage || t("download.error") || "Failed to start download. Please try again.";
+      
+      setError(errorMessage);
+      
+      // Show error toast
+      showToast({
+        type: 'error',
+        title: t("download.error") || "Download Failed",
+        message: errorMessage,
+        duration: 6000,
+      });
     } finally {
       setDownloading(false);
     }
@@ -131,8 +149,8 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
 
       {/* Download Panel Modal */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <div className="bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-fade-in">
+          <div className="bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col animate-slide-up">
             {/* Header */}
             <div className="p-6 border-b border-gray-700 flex items-center justify-between">
               <div>
@@ -172,11 +190,30 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
                 </div>
               </div>
 
-              {/* Loading State */}
+              {/* Loading State with Skeleton */}
               {loading && (
-                <div className="flex flex-col items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mb-4"></div>
-                  <p className="text-gray-400">{t("download.searching") || "Searching for torrents..."}</p>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-500"></div>
+                    <p className="text-gray-400">{t("download.searching") || "Searching for torrents..."}</p>
+                  </div>
+                  {/* Skeleton Cards */}
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="p-4 rounded-lg border-2 border-gray-700 bg-gray-700/30 animate-pulse-shimmer">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1 space-y-2">
+                          <div className="h-5 bg-gray-600 rounded w-3/4"></div>
+                          <div className="h-3 bg-gray-600 rounded w-1/4"></div>
+                        </div>
+                        <div className="h-7 w-16 bg-gray-600 rounded-full"></div>
+                      </div>
+                      <div className="flex gap-6">
+                        <div className="h-4 bg-gray-600 rounded w-20"></div>
+                        <div className="h-4 bg-gray-600 rounded w-20"></div>
+                        <div className="h-4 bg-gray-600 rounded w-16"></div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
 

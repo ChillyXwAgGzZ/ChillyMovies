@@ -35,6 +35,29 @@ export interface TrailerInfo {
   publishedAt: string;
 }
 
+export interface TVEpisode {
+  id: number;
+  name: string;
+  overview: string;
+  episodeNumber: number;
+  seasonNumber: number;
+  airDate?: string;
+  runtime?: number;
+  stillPath?: string;
+  voteAverage?: number;
+}
+
+export interface TVSeason {
+  id: number;
+  name: string;
+  overview: string;
+  seasonNumber: number;
+  episodeCount: number;
+  airDate?: string;
+  posterPath?: string;
+  episodes?: TVEpisode[];
+}
+
 // Download types
 export interface DownloadJob {
   id: string;
@@ -54,6 +77,8 @@ export interface DownloadStartPayload {
   title: string;
   sourceUrn?: string; // Optional magnet link or URL
   quality?: string;
+  seasonNumber?: number;  // For TV episodes
+  episodeNumber?: number; // For TV episodes
 }
 
 // Library types
@@ -176,6 +201,20 @@ export const metadataApi = {
     return apiFetch<{ message: string }>("/metadata/cache/clear", {
       method: "POST",
     });
+  },
+
+  /**
+   * Get TV show seasons
+   */
+  async getTVSeasons(id: number): Promise<TVSeason[]> {
+    return apiFetch<TVSeason[]>(`/metadata/tv/${id}/seasons`);
+  },
+
+  /**
+   * Get detailed information for a specific TV season including episodes
+   */
+  async getTVSeasonDetails(id: number, seasonNumber: number): Promise<TVSeason> {
+    return apiFetch<TVSeason>(`/metadata/tv/${id}/season/${seasonNumber}`);
   },
 };
 
