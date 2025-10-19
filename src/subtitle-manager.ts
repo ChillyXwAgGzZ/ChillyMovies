@@ -52,25 +52,28 @@ function parseSRTTimestamp(timestamp: string): number {
  */
 function parseVTTTimestamp(timestamp: string): number {
   const parts = timestamp.trim().split(':');
-  let hours = 0;
-  let minutes = 0;
-  let secondsMs = '';
+  let hours: number = 0;
+  let minutes: number = 0;
+  let secondsMs: string = '';
   
   if (parts.length === 3) {
     // HH:MM:SS.mmm
-    [hours, minutes, secondsMs] = parts.map((p, i) => i < 2 ? parseInt(p) : p);
+    hours = parseInt(parts[0]);
+    minutes = parseInt(parts[1]);
+    secondsMs = parts[2];
   } else if (parts.length === 2) {
     // MM:SS.mmm
-    [minutes, secondsMs] = parts.map((p, i) => i < 1 ? parseInt(p) : p);
+    minutes = parseInt(parts[0]);
+    secondsMs = parts[1];
   } else {
     secondsMs = parts[0];
   }
   
-  const [seconds, milliseconds] = secondsMs.toString().split('.');
+  const [seconds, milliseconds] = secondsMs.split('.');
   
   return (
-    (typeof hours === 'number' ? hours : 0) * 3600 +
-    (typeof minutes === 'number' ? minutes : 0) * 60 +
+    hours * 3600 +
+    minutes * 60 +
     parseInt(seconds) +
     (milliseconds ? parseInt(milliseconds) / 1000 : 0)
   );
@@ -152,7 +155,7 @@ export function parseVTT(content: string): SubtitleCue[] {
  */
 export async function loadSubtitleFile(filePath: string): Promise<SubtitleCue[]> {
   if (!fs.existsSync(filePath)) {
-    logger.error('Subtitle file not found', { filePath });
+    logger.error('Subtitle file not found', undefined, { filePath });
     throw new Error(`Subtitle file not found: ${filePath}`);
   }
   
@@ -164,7 +167,7 @@ export async function loadSubtitleFile(filePath: string): Promise<SubtitleCue[]>
   } else if (ext === '.vtt') {
     return parseVTT(content);
   } else {
-    logger.error('Unsupported subtitle format', { filePath, ext });
+    logger.error('Unsupported subtitle format', undefined, { filePath, ext });
     throw new Error(`Unsupported subtitle format: ${ext}`);
   }
 }

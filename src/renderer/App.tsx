@@ -1,92 +1,96 @@
-import React from "react";
-import { BrowserRouter, Routes, Route, NavLink } from "react-router-dom";
-import { useTranslation } from "react-i18next";
-import "./App.css";
-
-// View components (to be implemented)
-import DiscoveryView from "./views/DiscoveryView";
-import LibraryView from "./views/LibraryView";
+import { useCallback, useState } from "react";
+import { HashRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
+import Sidebar from "./components/Sidebar";
+import Header from "./components/Header";
+import HomeView from "./views/HomeView";
 import DownloadsView from "./views/DownloadsView";
+import LibraryView from "./views/LibraryView";
 import SettingsView from "./views/SettingsView";
+import MovieDetailView from "./views/MovieDetailView";
+import TVDetailView from "./views/TVDetailView";
+import { metadataApi, debounce, type MediaMetadata } from "./services/api";
 
-function App() {
-  const { t, i18n } = useTranslation();
+function AppContent() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<MediaMetadata[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-  const toggleLanguage = () => {
-    const newLang = i18n.language === "en" ? "sw" : "en";
-    i18n.changeLanguage(newLang);
-    // Persist language preference
-    localStorage.setItem("language", newLang);
-  };
+  // Debounced search function
+  const performSearch = useCallback(
+    debounce(async (query: string) => {
+      if (!query.trim()) {
+        setSearchResults([]);
+        setIsSearching(false);
+        return;
+      }
 
-  React.useEffect(() => {
-    // Restore language preference on mount
-    const savedLang = localStorage.getItem("language");
-    if (savedLang) {
-      i18n.changeLanguage(savedLang);
-    }
-  }, [i18n]);
+      setIsSearching(true);
+      setSearchError(null);
+
+      try {
+        const results = await metadataApi.search(query);
+        setSearchResults(results);
+      } catch (error) {
+        console.error("Search error:", error);
+        setSearchError(error instanceof Error ? error.message : "Search failed");
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300),
+    []
+  );
+
+  const handleSearch = useCallback(
+    (query: string) => {
+      setSearchQuery(query);
+      if (query.trim()) {
+        performSearch(query);
+      } else {
+        setSearchResults([]);
+        setIsSearching(false);
+      }
+    },
+    [performSearch]
+  );
 
   return (
-    <BrowserRouter>
-      <div className="app">
-        {/* Navigation Bar */}
-        <nav className="app-nav" role="navigation" aria-label="Main navigation">
-          <div className="nav-brand">
-            <h1>Chilly Movies</h1>
-          </div>
-          <div className="nav-links">
-            <NavLink
-              to="/"
-              className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
-              aria-label={t("nav.discovery")}
-            >
-              {t("nav.discovery")}
-            </NavLink>
-            <NavLink
-              to="/library"
-              className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
-              aria-label={t("nav.library")}
-            >
-              {t("nav.library")}
-            </NavLink>
-            <NavLink
-              to="/downloads"
-              className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
-              aria-label={t("nav.downloads")}
-            >
-              {t("nav.downloads")}
-            </NavLink>
-            <NavLink
-              to="/settings"
-              className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
-              aria-label={t("nav.settings")}
-            >
-              {t("nav.settings")}
-            </NavLink>
-          </div>
-          <div className="nav-actions">
-            <button
-              onClick={toggleLanguage}
-              className="lang-toggle"
-              aria-label="Toggle language"
-            >
-              {i18n.language === "en" ? "SW" : "EN"}
-            </button>
-          </div>
-        </nav>
-
-        {/* Main Content Area */}
-        <main className="app-content" role="main">
+    <div className="flex h-screen bg-gray-900 text-white">
+      <Sidebar />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header searchQuery={searchQuery} onSearch={handleSearch} />
+        <main className="flex-1 overflow-y-auto p-8">
           <Routes>
-            <Route path="/" element={<DiscoveryView />} />
-            <Route path="/library" element={<LibraryView />} />
+            <Route 
+              path="/" 
+              element={
+                <HomeView 
+                  searchResults={searchResults}
+                  isSearching={isSearching}
+                  searchError={searchError}
+                  searchQuery={searchQuery}
+                />
+              } 
+            />
+            <Route path="/movie/:id" element={<MovieDetailView />} />
+            <Route path="/tv/:id" element={<TVDetailView />} />
             <Route path="/downloads" element={<DownloadsView />} />
+            <Route path="/library" element={<LibraryView />} />
             <Route path="/settings" element={<SettingsView />} />
           </Routes>
         </main>
       </div>
-    </BrowserRouter>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
   );
 }
 

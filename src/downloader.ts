@@ -15,17 +15,33 @@ export interface DownloadJob {
   sourceUrn: string; // magnet, url, file
   status: DownloadStatus;
   progress?: Progress;
+  errorState?: string;
 }
 
-export abstract class Downloader extends EventEmitter {
-  abstract start(job: DownloadJob): Promise<void>;
-  abstract pause(jobId: UUID): Promise<void>;
-  abstract resume(jobId: UUID): Promise<void>;
-  abstract cancel(jobId: UUID): Promise<void>;
-  abstract getStatus(jobId: UUID): Promise<DownloadJob | null>;
+export interface DownloaderEvents {
+  started: (job: DownloadJob) => void;
+  progress: (job: DownloadJob, progress: Progress) => void;
+  completed: (job: DownloadJob) => void;
+  paused: (job: DownloadJob) => void;
+  resumed: (job: DownloadJob) => void;
+  canceled: (job: DownloadJob) => void;
+  error: (error: Error, job: DownloadJob) => void;
 }
 
-export class MockDownloader extends Downloader {
+export interface Downloader {
+  start(job: DownloadJob): Promise<void>;
+  pause(jobId: UUID): Promise<void>;
+  resume(jobId: UUID): Promise<void>;
+  cancel(jobId: UUID): Promise<void>;
+  getStatus(jobId: UUID): Promise<DownloadJob | null>;
+  shutdown?(): Promise<void>;
+  
+  // EventEmitter interface
+  on<K extends keyof DownloaderEvents>(event: K, listener: DownloaderEvents[K]): this;
+  emit<K extends keyof DownloaderEvents>(event: K, ...args: Parameters<DownloaderEvents[K]>): boolean;
+}
+
+export class MockDownloader extends EventEmitter implements Downloader {
   private jobs = new Map<UUID, DownloadJob>();
 
   async start(job: DownloadJob) {
@@ -75,6 +91,26 @@ export class MockDownloader extends Downloader {
 
   async getStatus(jobId: UUID) {
     return this.jobs.get(jobId) ?? null;
+  }
+}
+
+// Downloader factory
+export type DownloaderType = 'webtorrent' | 'aria2' | 'mock';
+
+export async function createDownloader(type: DownloaderType = 'webtorrent', options: any = {}): Promise<Downloader> {
+  switch (type) {
+    case 'webtorrent': {
+      const { WebTorrentDownloader } = await import('./webtorrent-downloader');
+      return new WebTorrentDownloader(options);
+    }
+    case 'aria2': {
+      const { Aria2Downloader } = await import('./aria2-downloader');
+      return new Aria2Downloader(options);
+    }
+    case 'mock':
+      return new MockDownloader();
+    default:
+      throw new Error(`Unknown downloader type: ${type}`);
   }
 }
 

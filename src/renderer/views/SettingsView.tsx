@@ -1,203 +1,119 @@
-import React from "react";
-import { useTranslation } from "react-i18next";
-import { loadSettings, saveSettings, UserSettings } from "../settings";
+// src/renderer/views/SettingsView.tsx
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
-function SettingsView() {
-  const { t, i18n } = useTranslation();
-  const [settings, setSettings] = React.useState<UserSettings>(loadSettings());
-  const [isSaved, setIsSaved] = React.useState(false);
+const SettingsView = () => {
+  const { t } = useTranslation();
+  const [settings, setSettings] = useState({
+    downloadPath: '/Users/chilly/Downloads',
+    downloadLimit: 0, // 0 for unlimited
+    uploadLimit: 0, // 0 for unlimited
+    telemetry: true,
+  });
 
-  React.useEffect(() => {
-    // Load settings on mount
-    const loaded = loadSettings();
-    setSettings(loaded);
-    
-    // If storage path is empty, get default from Electron
-    if (!loaded.storagePath) {
-      window.electronAPI.app.getPath("downloads").then((path: string) => {
-        setSettings(prev => ({ ...prev, storagePath: path }));
-      });
-    }
-  }, []);
-
-  const handleLanguageChange = (newLang: "en" | "sw") => {
-    i18n.changeLanguage(newLang);
-    setSettings(prev => ({ ...prev, language: newLang }));
-  };
-
-  const handleStoragePathChange = (path: string) => {
-    setSettings(prev => ({ ...prev, storagePath: path }));
-  };
-
-  const handleBandwidthChange = (type: "download" | "upload", value: number) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
     setSettings(prev => ({
       ...prev,
-      bandwidthLimit: {
-        ...prev.bandwidthLimit,
-        [type]: Math.max(0, value),
-      },
+      [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
-  const handleTelemetryChange = (enabled: boolean) => {
-    setSettings(prev => ({ ...prev, telemetryOptIn: enabled }));
-  };
-
-  const handleThemeChange = (theme: "light" | "dark" | "system") => {
-    setSettings(prev => ({ ...prev, theme }));
-  };
-
-  const handleSave = () => {
-    saveSettings(settings);
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 2000);
-  };
-
-  const handleBrowseStorage = async () => {
-    // TODO: Implement directory picker via IPC
-    console.log("Browse for storage location");
+  const handleLimitChange = (name: 'downloadLimit' | 'uploadLimit', value: string) => {
+    setSettings(prev => ({
+      ...prev,
+      [name]: parseInt(value, 10) || 0,
+    }));
   };
 
   return (
-    <div className="view settings-view">
-      <h2>{t("settings.title")}</h2>
-      
-      <form className="settings-form" onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
-        {/* Language Settings */}
-        <section className="settings-section">
-          <h3>{t("settings.sections.language")}</h3>
-          <div className="form-group">
-            <label htmlFor="language-select">
-              {t("settings.language")}
-            </label>
-            <select
-              id="language-select"
-              value={settings.language}
-              onChange={(e) => handleLanguageChange(e.target.value as "en" | "sw")}
-              aria-label={t("settings.language")}
-            >
-              <option value="en">English</option>
-              <option value="sw">Kiswahili</option>
-            </select>
-          </div>
-        </section>
-
-        {/* Storage Settings */}
-        <section className="settings-section">
-          <h3>{t("settings.sections.storage")}</h3>
-          <div className="form-group">
-            <label htmlFor="storage-path">
-              {t("settings.storage")}
-            </label>
-            <div style={{ display: "flex", gap: "0.5rem" }}>
-              <input
-                id="storage-path"
-                type="text"
-                value={settings.storagePath}
-                onChange={(e) => handleStoragePathChange(e.target.value)}
-                aria-label={t("settings.storage")}
-                style={{ flex: 1 }}
-              />
-              <button
-                type="button"
-                onClick={handleBrowseStorage}
-                className="btn-secondary"
-                aria-label="Browse for storage location"
-              >
-                {t("common.browse")}
-              </button>
+    <div>
+      <h2 className="text-2xl font-bold text-white mb-6">{t('Settings')}</h2>
+      <div className="space-y-8">
+        {/* Download Settings */}
+        <div className="bg-gray-800 p-6 rounded-lg">
+          <h3 className="text-lg font-semibold text-white mb-4">{t('Downloads')}</h3>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="downloadPath" className="block text-sm font-medium text-gray-300 mb-1">
+                {t('Download Location')}
+              </label>
+              <div className="flex">
+                <input
+                  type="text"
+                  id="downloadPath"
+                  name="downloadPath"
+                  value={settings.downloadPath}
+                  onChange={handleInputChange}
+                  className="flex-grow bg-gray-700 border border-gray-600 rounded-l-md px-3 py-2 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+                <button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-r-md">
+                  {t('Browse')}
+                </button>
+              </div>
             </div>
-            <small>{t("settings.storageDescription")}</small>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="downloadLimit" className="block text-sm font-medium text-gray-300 mb-1">
+                  {t('Download Speed Limit (KB/s)')}
+                </label>
+                <input
+                  type="number"
+                  id="downloadLimit"
+                  name="downloadLimit"
+                  value={settings.downloadLimit}
+                  onChange={(e) => handleLimitChange('downloadLimit', e.target.value)}
+                  className="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  placeholder="0 for unlimited"
+                />
+              </div>
+              <div>
+                <label htmlFor="uploadLimit" className="block text-sm font-medium text-gray-300 mb-1">
+                  {t('Upload Speed Limit (KB/s)')}
+                </label>
+                <input
+                  type="number"
+                  id="uploadLimit"
+                  name="uploadLimit"
+                  value={settings.uploadLimit}
+                  onChange={(e) => handleLimitChange('uploadLimit', e.target.value)}
+                  className="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  placeholder="0 for unlimited"
+                />
+              </div>
+            </div>
           </div>
-        </section>
-
-        {/* Bandwidth Settings */}
-        <section className="settings-section">
-          <h3>{t("settings.sections.bandwidth")}</h3>
-          <div className="form-group">
-            <label htmlFor="download-limit">
-              {t("settings.downloadLimit")}
-            </label>
-            <input
-              id="download-limit"
-              type="number"
-              min="0"
-              value={settings.bandwidthLimit.download}
-              onChange={(e) => handleBandwidthChange("download", parseInt(e.target.value) || 0)}
-              placeholder="MB/s (0 = unlimited)"
-              aria-label={t("settings.downloadLimit")}
-            />
-            <small>{t("settings.bandwidthDescription")}</small>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="upload-limit">
-              {t("settings.uploadLimit")}
-            </label>
-            <input
-              id="upload-limit"
-              type="number"
-              min="0"
-              value={settings.bandwidthLimit.upload}
-              onChange={(e) => handleBandwidthChange("upload", parseInt(e.target.value) || 0)}
-              placeholder="MB/s (0 = unlimited)"
-              aria-label={t("settings.uploadLimit")}
-            />
-          </div>
-        </section>
-
-        {/* Appearance Settings */}
-        <section className="settings-section">
-          <h3>{t("settings.sections.appearance")}</h3>
-          <div className="form-group">
-            <label htmlFor="theme-select">
-              {t("settings.theme")}
-            </label>
-            <select
-              id="theme-select"
-              value={settings.theme}
-              onChange={(e) => handleThemeChange(e.target.value as "light" | "dark" | "system")}
-              aria-label={t("settings.theme")}
-            >
-              <option value="light">{t("settings.themes.light")}</option>
-              <option value="dark">{t("settings.themes.dark")}</option>
-              <option value="system">{t("settings.themes.system")}</option>
-            </select>
-          </div>
-        </section>
+        </div>
 
         {/* Privacy Settings */}
-        <section className="settings-section">
-          <h3>{t("settings.sections.privacy")}</h3>
-          <div className="form-group">
-            <label htmlFor="telemetry-opt-in" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <input
-                id="telemetry-opt-in"
-                type="checkbox"
-                checked={settings.telemetryOptIn}
-                onChange={(e) => handleTelemetryChange(e.target.checked)}
-                aria-label={t("settings.telemetry")}
-              />
-              {t("settings.telemetry")}
+        <div className="bg-gray-800 p-6 rounded-lg">
+          <h3 className="text-lg font-semibold text-white mb-4">{t('Privacy')}</h3>
+          <div className="flex items-center">
+            <input
+              id="telemetry"
+              name="telemetry"
+              type="checkbox"
+              checked={settings.telemetry}
+              onChange={handleInputChange}
+              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+            />
+            <label htmlFor="telemetry" className="ml-3 block text-sm font-medium text-gray-300">
+              {t('Enable anonymous usage statistics')}
             </label>
-            <small>{t("settings.telemetryDescription")}</small>
           </div>
-        </section>
-
-        {/* Save Actions */}
-        <div className="form-actions">
-          <button type="submit" className="btn-primary">
-            {t("common.save")}
-          </button>
-          {isSaved && (
-            <span className="save-indicator" style={{ color: "green", marginLeft: "1rem" }}>
-              ✓ {t("settings.saved")}
-            </span>
-          )}
+          <p className="text-xs text-gray-400 mt-2">
+            {t('Help us improve ChillyMovies by sending anonymous usage data. We will never collect personal information.')}
+          </p>
         </div>
-      </form>
+
+        <div className="flex justify-end">
+          <button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md">
+            {t('Save Settings')}
+          </button>
+        </div>
+      </div>
     </div>
   );
-}
+};
 
 export default SettingsView;

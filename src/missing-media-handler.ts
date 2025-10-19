@@ -103,7 +103,7 @@ export async function relinkMediaFile(
 ): Promise<boolean> {
   // Validate the new file exists
   if (!fs.existsSync(newFilePath)) {
-    logger.error('Cannot relink: new file path does not exist', { id, newFilePath });
+    logger.error('Cannot relink: new file path does not exist', undefined, { id, newFilePath });
     return false;
   }
   
@@ -111,7 +111,7 @@ export async function relinkMediaFile(
   const ext = path.extname(newFilePath).toLowerCase();
   const validExtensions = ['.mp4', '.mkv', '.avi', '.mov', '.webm'];
   if (!validExtensions.includes(ext)) {
-    logger.error('Cannot relink: invalid video file extension', { id, ext });
+    logger.error('Cannot relink: invalid video file extension', undefined, { id, ext });
     return false;
   }
   
@@ -125,7 +125,7 @@ export async function relinkMediaFile(
     logger.info('Media file relinked successfully', { id, oldPath: newFilePath, newPath: targetPath });
     return true;
   } catch (error) {
-    logger.error('Failed to relink media file', { id, error });
+    logger.error('Failed to relink media file', error as Error, { id });
     return false;
   }
 }
