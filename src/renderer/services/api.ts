@@ -53,6 +53,7 @@ export interface DownloadStartPayload {
   mediaType: "movie" | "tv";
   title: string;
   sourceUrn?: string; // Optional magnet link or URL
+  quality?: string;
 }
 
 // Library types
