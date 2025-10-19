@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Film, Play, Trash2, FolderOpen } from "lucide-react";
 import { libraryApi } from "../services/api";
 import { useToast } from "../components/Toast";
+import VideoPlayer from "../components/VideoPlayer";
 
 interface LibraryItem {
   id: string;
@@ -27,6 +28,7 @@ const LibraryView = () => {
   const [items, setItems] = useState<LibraryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [playingItem, setPlayingItem] = useState<LibraryItem | null>(null);
 
   useEffect(() => {
     const loadLibrary = async () => {
@@ -47,9 +49,8 @@ const LibraryView = () => {
   }, []);
 
   const handlePlay = (item: LibraryItem) => {
-    // TODO: Implement video player
-    console.log("Play item:", item);
-    alert(t("library.playNotImplemented") || "Video player not yet implemented");
+    // Open video player stub
+    setPlayingItem(item);
   };
 
   const handleDelete = async (item: LibraryItem) => {
@@ -218,6 +219,16 @@ const LibraryView = () => {
           </div>
         ))}
       </div>
+
+      {/* Video Player Modal */}
+      {playingItem && (
+        <VideoPlayer
+          mediaId={playingItem.id}
+          title={playingItem.title}
+          filePath={playingItem.metadata?.poster} // Placeholder - will be actual file path in production
+          onClose={() => setPlayingItem(null)}
+        />
+      )}
     </div>
   );
 };
