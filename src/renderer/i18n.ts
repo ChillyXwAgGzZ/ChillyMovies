@@ -73,6 +73,15 @@ const resources = {
       "library.addContent": "Add content to get started",
       "library.emptyStateTitle": "Your library is empty",
       "library.emptyStateDescription": "Add movies to your library from Discover or import existing files.",
+      "library.item": "item",
+      "library.items": "items",
+      "library.play": "Play",
+      "library.delete": "Delete",
+      "library.browseMovies": "Browse Movies",
+      "library.playNotImplemented": "Video player not yet implemented",
+      "library.deleteNotImplemented": "Delete functionality not yet implemented",
+      "library.confirmDelete": "Are you sure you want to delete this item?",
+      "library.deleteError": "Failed to delete item",
 
       // Downloads view
       "downloads.title": "Downloads",
@@ -91,6 +100,9 @@ const resources = {
       "downloads.actions.pause": "Pause",
       "downloads.actions.resume": "Resume",
       "downloads.actions.cancel": "Cancel",
+      "downloads.actions.pauseError": "Failed to pause download",
+      "downloads.actions.resumeError": "Failed to resume download",
+      "downloads.actions.cancelError": "Failed to cancel download",
 
       // Download actions
       "download.start": "Start",
@@ -149,7 +161,22 @@ const resources = {
       // Download
       "download.starting": "Starting...",
       "download.started": "Download Started!",
-      "download.error": "Failed to start download",
+  "download.error": "Failed to start download",
+  "download.button": "Download",
+  "download.selectQuality": "Select Download Quality",
+  "download.quality": "Quality",
+  "download.noTorrents": "No torrents found for this quality. Try a different quality.",
+  "download.searchError": "Failed to search for torrents. Please try again.",
+  "download.searching": "Searching for torrents...",
+  "download.availableTorrents": "Available Torrents",
+  "download.provider": "Provider",
+  "download.seeders": "seeders",
+  "download.leechers": "leechers",
+  "download.excellent": "Excellent",
+  "download.good": "Good",
+  "download.slow": "Slow",
+  "download.selected": "Selected",
+  "download.redirecting": "Download started! Redirecting to Downloads...",
 
       // Trailer
       "trailer.title": "Trailers",
@@ -207,6 +234,15 @@ const resources = {
       "library.addContent": "Ongeza maudhui kuanza",
       "library.emptyStateTitle": "Maktaba yako ni tupu",
       "library.emptyStateDescription": "Ongeza filamu kwenye maktaba kupitia Gundua au leta faili zilizopo.",
+      "library.item": "kipengee",
+      "library.items": "vipengee",
+      "library.play": "Cheza",
+      "library.delete": "Futa",
+      "library.browseMovies": "Vinjari Filamu",
+      "library.playNotImplemented": "Kichezeshi video bado hakijatekelezwa",
+      "library.deleteNotImplemented": "Utendaji wa kufuta bado haujapatikana",
+      "library.confirmDelete": "Una uhakika unataka kufuta kipengee hiki?",
+      "library.deleteError": "Imeshindwa kufuta kipengee",
 
       // Downloads view
       "downloads.title": "Upakuaji",
@@ -225,6 +261,9 @@ const resources = {
       "downloads.actions.pause": "Sitisha",
       "downloads.actions.resume": "Endelea",
       "downloads.actions.cancel": "Ghairi",
+      "downloads.actions.pauseError": "Imeshindwa kusitisha upakuaji",
+      "downloads.actions.resumeError": "Imeshindwa kuendelea upakuaji",
+      "downloads.actions.cancelError": "Imeshindwa kughairi upakuaji",
 
       // Download actions
       "download.start": "Anza",
@@ -283,7 +322,22 @@ const resources = {
       // Download
       "download.starting": "Inaanza...",
       "download.started": "Upakuaji Umeanza!",
-      "download.error": "Imeshindwa kuanza upakuaji",
+  "download.error": "Imeshindwa kuanza upakuaji",
+  "download.button": "Pakua",
+  "download.selectQuality": "Chagua ubora wa upakuaji",
+  "download.quality": "Ubora",
+  "download.noTorrents": "Hakuna torenti zilizopatikana kwa ubora huu. Jaribu ubora mwingine.",
+  "download.searchError": "Imeshindwa kutafuta torenti. Tafadhali jaribu tena.",
+  "download.searching": "Inatafuta torenti...",
+  "download.availableTorrents": "Torenti Zinazopatikana",
+  "download.provider": "Mtoa huduma",
+  "download.seeders": "wasambazaji",
+  "download.leechers": "wapakuaji",
+  "download.excellent": "Bora sana",
+  "download.good": "Nzuri",
+  "download.slow": "Polepole",
+  "download.selected": "Imeteuliwa",
+  "download.redirecting": "Upakuaji umeanza! Inahamia kwenye Upakuaji...",
 
       // Trailer
       "trailer.title": "Matangazo",

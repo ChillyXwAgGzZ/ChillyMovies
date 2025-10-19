@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Download, Play, Star } from "lucide-react";
-import { metadataApi, downloadApi, type MediaMetadata } from "../services/api";
+import { ArrowLeft, Play, Star } from "lucide-react";
+import { metadataApi, type MediaMetadata } from "../services/api";
+import DownloadPanel from "../components/DownloadPanel";
 
 const MovieDetailView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -12,7 +13,6 @@ const MovieDetailView: React.FC = () => {
   const [movie, setMovie] = useState<MediaMetadata | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [downloading, setDownloading] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
 
   useEffect(() => {
@@ -35,30 +35,14 @@ const MovieDetailView: React.FC = () => {
     fetchMovieDetails();
   }, [id]);
 
-  const handleDownload = async () => {
-    if (!movie || !id) return;
-
-    try {
-      setDownloading(true);
-      const result = await downloadApi.start({
-        tmdbId: parseInt(id),
-        mediaType: "movie",
-        title: movie.title,
-      });
-      
-      console.log("Download started:", result);
-      setDownloadSuccess(true);
-      
-      // Navigate to downloads page after 2 seconds
-      setTimeout(() => {
-        navigate("/downloads");
-      }, 2000);
-    } catch (err) {
-      console.error("Download failed:", err);
-      alert(t("download.error") || "Failed to start download");
-    } finally {
-      setDownloading(false);
-    }
+  const handleDownloadStarted = (jobId: string) => {
+    console.log("Download started with job ID:", jobId);
+    setDownloadSuccess(true);
+    
+    // Navigate to downloads page after 1.5 seconds
+    setTimeout(() => {
+      navigate("/downloads");
+    }, 1500);
   };
 
   const handleWatchTrailer = async () => {
@@ -162,28 +146,20 @@ const MovieDetailView: React.FC = () => {
 
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-4">
-                <button
-                  onClick={handleDownload}
-                  disabled={downloading || downloadSuccess}
-                  className="flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg font-semibold transition shadow-lg"
-                >
-                  {downloading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                      {t("download.starting") || "Starting..."}
-                    </>
-                  ) : downloadSuccess ? (
-                    <>
-                      <Download className="mr-2 h-5 w-5" />
-                      {t("download.started") || "Download Started!"}
-                    </>
-                  ) : (
-                    <>
-                      <Download className="mr-2 h-5 w-5" />
-                      {t("download.start") || "Download"}
-                    </>
-                  )}
-                </button>
+                {downloadSuccess && (
+                  <div className="mb-4 px-6 py-3 bg-green-600/20 border border-green-600 rounded-lg">
+                    <p className="text-green-400 font-semibold">
+                      {t("download.redirecting") || "Download started! Redirecting to Downloads..."}
+                    </p>
+                  </div>
+                )}
+                
+                <DownloadPanel
+                  tmdbId={parseInt(id!)}
+                  mediaType="movie"
+                  title={movie.title}
+                  onDownloadStarted={handleDownloadStarted}
+                />
 
                 <button
                   onClick={handleWatchTrailer}

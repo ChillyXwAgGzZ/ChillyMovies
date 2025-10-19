@@ -20,6 +20,7 @@
 
 import { getLogger } from './logger';
 import fetch, { RequestInit as FetchRequestInit } from 'node-fetch';
+import { Provider1337xScraper } from './torrent-1337x';
 
 const logger = getLogger();
 
@@ -108,21 +109,21 @@ class YTSProvider implements TorrentProvider {
       }
       this.lastRequest = Date.now();
 
+      // Clean up query - remove quality from query string for YTS since we use the quality parameter
+      const cleanQuery = query.replace(/\b(2160p|1080p|720p|480p|360p)\b/gi, '').trim();
+      
       const params = new URLSearchParams({
-        query_term: query,
+        query_term: cleanQuery,
         limit: String(options.limit || 20),
+        minimum_rating: '0',
       });
 
       if (options.quality?.length) {
         params.set('quality', options.quality[0]);
       }
 
-      if (options.minSeeders) {
-        params.set('minimum_rating', '0'); // YTS doesn't support seeder filtering directly
-      }
-
       const url = `${this.baseUrl}/list_movies.json?${params}`;
-      logger.info(`YTS search: ${query}`, { url });
+      logger.info(`YTS search: ${cleanQuery}`, { url, originalQuery: query, quality: options.quality });
 
       const response = await this.fetchWithTimeout(url, 10000, {
         headers: { 'User-Agent': 'ChillyMovies/1.0' },
@@ -134,7 +135,13 @@ class YTSProvider implements TorrentProvider {
 
       const data = await response.json() as any;
 
-      if (data.status !== 'ok' || !data.data?.movies) {
+      if (data.status !== 'ok') {
+        logger.warn(`YTS API returned status: ${data.status}`, { data });
+        return [];
+      }
+
+      if (!data.data?.movies || data.data.movies.length === 0) {
+        logger.info('YTS: No movies found for query', { query: cleanQuery, total: data.data?.movie_count || 0 });
         return [];
       }
 
@@ -173,7 +180,7 @@ class YTSProvider implements TorrentProvider {
         }
       }
 
-      logger.info(`YTS search complete: ${results.length} results`);
+      logger.info(`YTS search complete: ${results.length} results from ${data.data.movies.length} movies`);
       return results;
     } catch (error) {
       logger.error('YTS search failed', error as Error, { query, options });
@@ -266,7 +273,7 @@ export class TorrentSearchManager {
 
   constructor() {
     this.registerProvider(new YTSProvider());
-    // this.registerProvider(new Provider1337x()); // Disabled until scraping implemented
+    this.registerProvider(new Provider1337xScraper());
   }
 
   /**

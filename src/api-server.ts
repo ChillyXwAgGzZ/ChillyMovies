@@ -25,6 +25,7 @@ import {
   type ImportOptions,
 } from "./export-import";
 import { torrentSearch, type SearchOptions } from "./torrent-search";
+import { getLogger } from "./logger";
 import { Request, Response } from "express";
 import { StartDownloadRequest, ApiResponse, StatusResponse } from "./api-types";
 
@@ -144,11 +145,106 @@ export function createServer(opts?: { downloader?: any; startLimiter?: any; canc
 
   app.post("/download/start", authMiddleware, startLimiter, async (req: Request, res: Response) => {
     const body = req.body as StartDownloadRequest;
+    
     try {
-      const job = { id: body.id, sourceType: body.sourceType, sourceUrn: body.sourceUrn, status: "queued" } as any;
+      let job: any;
+      
+      // New metadata-based format: search for torrents first (unless magnet link provided)
+      if (body.tmdbId && body.mediaType && body.title) {
+        let magnetLink = body.sourceUrn; // Use provided magnet link if available
+        let torrentInfo: any = null;
+        
+        // Only search if no magnet link provided
+        if (!magnetLink) {
+          const searchQuery = `${body.title} ${body.quality || '1080p'}`;
+          getLogger().info(`Searching torrents for: ${searchQuery}`, { context: "download-start" });
+          
+          try {
+            // Search for torrents
+            const searchResults = await torrentSearch.search(searchQuery, {
+              limit: 10,
+              quality: body.quality ? [body.quality] : ['1080p', '720p'],
+              minSeeders: 5,
+              type: body.mediaType,
+            });
+            
+            if (searchResults.length === 0) {
+              res.status(404).json({ 
+                success: false, 
+                error: "No torrents found. Try different quality or check back later." 
+              } as ApiResponse);
+              return;
+            }
+            
+            // Pick best torrent (highest seeders)
+            const bestTorrent = searchResults.sort((a, b) => b.seeders - a.seeders)[0];
+            magnetLink = bestTorrent.magnetLink;
+            torrentInfo = {
+              seeders: bestTorrent.seeders,
+              leechers: bestTorrent.leechers,
+              size: bestTorrent.sizeFormatted,
+              provider: bestTorrent.provider,
+            };
+            
+            getLogger().info(`Selected torrent: ${bestTorrent.title} (${bestTorrent.seeders} seeders)`, { context: "download-start" });
+            
+          } catch (searchErr: any) {
+            getLogger().error("Torrent search failed", searchErr instanceof Error ? searchErr : new Error(String(searchErr)), { query: searchQuery });
+            res.status(500).json({ 
+              success: false, 
+              error: `Failed to search torrents: ${String(searchErr)}` 
+            } as ApiResponse);
+            return;
+          }
+        }
+        
+        // Generate job ID
+        const jobId = `${body.mediaType}-${body.tmdbId}-${body.quality || '1080p'}-${Date.now()}`;
+        
+        job = {
+          id: jobId,
+          sourceType: "torrent",
+          sourceUrn: magnetLink,
+          status: "queued",
+          title: body.title,
+          metadata: {
+            tmdbId: body.tmdbId,
+            mediaType: body.mediaType,
+            quality: body.quality || '1080p',
+            torrentInfo,
+          }
+        };
+      }
+      // Legacy format: direct magnet link
+      else if (body.id && body.sourceType && body.sourceUrn) {
+        job = { 
+          id: body.id, 
+          sourceType: body.sourceType, 
+          sourceUrn: body.sourceUrn, 
+          status: "queued" 
+        };
+      }
+      // Invalid format
+      else {
+        res.status(400).json({ 
+          success: false, 
+          error: "Invalid request: provide either (tmdbId, mediaType, title) or (id, sourceType, sourceUrn)" 
+        } as ApiResponse);
+        return;
+      }
+      
+      // Start download
       await downloader.start(job);
-      res.json({ success: true, data: job } as ApiResponse);
+      
+      // Store metadata in library
+      if (job.metadata) {
+        storage.addMediaItem(job.id, job.title, job.metadata);
+      }
+      
+      res.json({ success: true, data: { id: job.id, status: job.status } } as ApiResponse);
+      
     } catch (err: any) {
+      getLogger().error("Download start failed", err instanceof Error ? err : new Error(String(err)), { body });
       res.status(500).json({ success: false, error: String(err) } as ApiResponse);
     }
   });
@@ -334,14 +430,11 @@ export function createServer(opts?: { downloader?: any; startLimiter?: any; canc
       if (providers) options.providers = providers.split(',');
 
       const results = await torrentSearch.search(q, options);
+      
+      // Return results array directly for frontend compatibility
       res.json({ 
         success: true, 
-        data: {
-          results,
-          count: results.length,
-          query: q,
-          options,
-        }
+        data: results
       } as ApiResponse);
     } catch (err: any) {
       res.status(500).json({ success: false, error: String(err) } as ApiResponse);
