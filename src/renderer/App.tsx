@@ -9,6 +9,7 @@ import SettingsView from "./views/SettingsView";
 import MovieDetailView from "./views/MovieDetailView";
 import TVDetailView from "./views/TVDetailView";
 import { metadataApi, debounce, type MediaMetadata } from "./services/api";
+import { ToastProvider } from "./components/Toast";
 
 function AppContent() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -88,9 +89,11 @@ function AppContent() {
 
 function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <ToastProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </ToastProvider>
   );
 }
 

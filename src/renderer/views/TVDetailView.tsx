@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Play, Star } from "lucide-react";
-import { metadataApi, type MediaMetadata } from "../services/api";
+import { ArrowLeft, Play, Star, Download } from "lucide-react";
+import { metadataApi, type MediaMetadata, type TVSeason } from "../services/api";
 import DownloadPanel from "../components/DownloadPanel";
+import EpisodeSelector from "../components/EpisodeSelector";
 
 const TVDetailView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -11,9 +12,11 @@ const TVDetailView: React.FC = () => {
   const { t } = useTranslation();
   
   const [series, setSeries] = useState<MediaMetadata | null>(null);
+  const [seasons, setSeasons] = useState<TVSeason[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
+  const [showEpisodeSelector, setShowEpisodeSelector] = useState(false);
 
   useEffect(() => {
     const fetchSeriesDetails = async () => {
@@ -22,8 +25,15 @@ const TVDetailView: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await metadataApi.getDetails(parseInt(id), "tv");
-        setSeries(data);
+        
+        // Fetch series details and seasons in parallel
+        const [seriesData, seasonsData] = await Promise.all([
+          metadataApi.getDetails(parseInt(id), "tv"),
+          metadataApi.getTVSeasons(parseInt(id)),
+        ]);
+        
+        setSeries(seriesData);
+        setSeasons(seasonsData);
       } catch (err) {
         console.error("Failed to fetch series details:", err);
         setError(err instanceof Error ? err.message : "Failed to load series details");
@@ -154,12 +164,14 @@ const TVDetailView: React.FC = () => {
                   </div>
                 )}
                 
-                <DownloadPanel
-                  tmdbId={parseInt(id!)}
-                  mediaType="tv"
-                  title={series.title}
-                  onDownloadStarted={handleDownloadStarted}
-                />
+                {/* Episode Selector Button for TV Shows */}
+                <button
+                  onClick={() => setShowEpisodeSelector(true)}
+                  className="flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-semibold transition"
+                >
+                  <Download className="mr-2 h-5 w-5" />
+                  {t("tv.selectEpisodes") || "Select Episodes"}
+                </button>
 
                 <button
                   onClick={handleWatchTrailer}
@@ -183,6 +195,16 @@ const TVDetailView: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Episode Selector Modal */}
+      {showEpisodeSelector && (
+        <EpisodeSelector
+          tmdbId={parseInt(id!)}
+          title={series.title}
+          seasons={seasons}
+          onClose={() => setShowEpisodeSelector(false)}
+        />
+      )}
     </div>
   );
 };

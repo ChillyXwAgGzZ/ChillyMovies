@@ -406,6 +406,33 @@ export function createServer(opts?: { downloader?: any; startLimiter?: any; canc
     }
   });
 
+  // TV Season endpoints
+  app.get("/metadata/tv/:id/seasons", async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    try {
+      const seasons = await metadata.fetchTVSeasons(parseInt(id));
+      res.json({ success: true, data: seasons } as ApiResponse);
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: String(err) } as ApiResponse);
+    }
+  });
+
+  app.get("/metadata/tv/:id/season/:seasonNumber", async (req: Request, res: Response) => {
+    const { id, seasonNumber } = req.params;
+
+    try {
+      const season = await metadata.fetchTVSeasonDetails(parseInt(id), parseInt(seasonNumber));
+      if (!season) {
+        res.status(404).json({ success: false, error: "Season not found" } as ApiResponse);
+        return;
+      }
+      res.json({ success: true, data: season } as ApiResponse);
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: String(err) } as ApiResponse);
+    }
+  });
+
   // Torrent search endpoints
   app.get("/torrents/search", async (req: Request, res: Response) => {
     const { q, limit, quality, minSeeders, providers } = req.query as {
