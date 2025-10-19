@@ -86,6 +86,7 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
         mediaType,
         title,
         quality: selectedQuality,
+        sourceUrn: selectedTorrent.magnetLink, // Pass the specific torrent's magnet link
       });
 
       console.log("Download started:", result);
@@ -193,25 +194,32 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
                     {t("download.availableTorrents") || "Available Torrents"} ({torrents.length})
                   </label>
                   {torrents.map((torrent) => (
-                    <div
+                    <button
                       key={torrent.id}
                       onClick={() => setSelectedTorrent(torrent)}
-                      className={`p-4 rounded-lg border-2 cursor-pointer transition ${
+                      className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
                         selectedTorrent?.id === torrent.id
-                          ? "border-indigo-500 bg-indigo-900/20"
-                          : "border-gray-700 bg-gray-700/30 hover:border-gray-600"
+                          ? "border-indigo-500 bg-indigo-900/30 shadow-lg shadow-indigo-500/20"
+                          : "border-gray-700 bg-gray-700/30 hover:border-gray-600 hover:bg-gray-700/50"
                       }`}
                     >
                       <div className="flex items-start justify-between mb-2">
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-white mb-1 line-clamp-1">
-                            {torrent.title}
-                          </h4>
-                          <p className="text-xs text-gray-400 mb-2">
+                        <div className="flex-1 pr-4">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-semibold text-white line-clamp-1">
+                              {torrent.title}
+                            </h4>
+                            {selectedTorrent?.id === torrent.id && (
+                              <span className="flex-shrink-0 px-2 py-0.5 bg-indigo-500 text-white text-xs font-bold rounded-full">
+                                ✓ {t("download.selected") || "Selected"}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-400">
                             {t("download.provider") || "Provider"}: {torrent.provider}
                           </p>
                         </div>
-                        <span className="px-3 py-1 bg-indigo-600 text-white text-sm font-semibold rounded-full ml-4">
+                        <span className="flex-shrink-0 px-3 py-1 bg-indigo-600 text-white text-sm font-semibold rounded-full">
                           {torrent.quality}
                         </span>
                       </div>
@@ -219,20 +227,26 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
                       <div className="flex items-center gap-6 text-sm">
                         <div className="flex items-center text-green-400">
                           <Users className="h-4 w-4 mr-1" />
-                          <span>{torrent.seeders} {t("download.seeders") || "seeders"}</span>
+                          <span className="font-medium">{torrent.seeders}</span>
+                          <span className="ml-1 text-gray-400">{t("download.seeders") || "seeders"}</span>
                         </div>
                         <div className="flex items-center text-red-400">
                           <Users className="h-4 w-4 mr-1" />
-                          <span>{torrent.leechers} {t("download.leechers") || "leechers"}</span>
+                          <span className="font-medium">{torrent.leechers}</span>
+                          <span className="ml-1 text-gray-400">{t("download.leechers") || "leechers"}</span>
                         </div>
                         <div className="flex items-center text-gray-400">
                           <HardDrive className="h-4 w-4 mr-1" />
-                          <span>{torrent.sizeFormatted}</span>
+                          <span className="font-medium">{torrent.sizeFormatted}</span>
                         </div>
                         {torrent.seeders > 0 && (
-                          <div className="flex items-center text-yellow-400">
+                          <div className="flex items-center">
                             <Gauge className="h-4 w-4 mr-1" />
-                            <span>
+                            <span className={`font-medium ${
+                              torrent.seeders > 100 ? 'text-green-400' : 
+                              torrent.seeders > 50 ? 'text-yellow-400' : 
+                              'text-orange-400'
+                            }`}>
                               {torrent.seeders > 100 ? t("download.excellent") || "Excellent" : 
                                torrent.seeders > 50 ? t("download.good") || "Good" : 
                                t("download.slow") || "Slow"}
@@ -240,7 +254,7 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
                           </div>
                         )}
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               )}

@@ -149,63 +149,71 @@ export function createServer(opts?: { downloader?: any; startLimiter?: any; canc
     try {
       let job: any;
       
-      // New metadata-based format: search for torrents first
+      // New metadata-based format: search for torrents first (unless magnet link provided)
       if (body.tmdbId && body.mediaType && body.title) {
-        const searchQuery = `${body.title} ${body.quality || '1080p'}`;
-        getLogger().info(`Searching torrents for: ${searchQuery}`, { context: "download-start" });
+        let magnetLink = body.sourceUrn; // Use provided magnet link if available
+        let torrentInfo: any = null;
         
-        try {
-          // Search for torrents
-          const searchResults = await torrentSearch.search(searchQuery, {
-            limit: 10,
-            quality: body.quality ? [body.quality] : ['1080p', '720p'],
-            minSeeders: 5,
-            type: body.mediaType,
-          });
+        // Only search if no magnet link provided
+        if (!magnetLink) {
+          const searchQuery = `${body.title} ${body.quality || '1080p'}`;
+          getLogger().info(`Searching torrents for: ${searchQuery}`, { context: "download-start" });
           
-          if (searchResults.length === 0) {
-            res.status(404).json({ 
+          try {
+            // Search for torrents
+            const searchResults = await torrentSearch.search(searchQuery, {
+              limit: 10,
+              quality: body.quality ? [body.quality] : ['1080p', '720p'],
+              minSeeders: 5,
+              type: body.mediaType,
+            });
+            
+            if (searchResults.length === 0) {
+              res.status(404).json({ 
+                success: false, 
+                error: "No torrents found. Try different quality or check back later." 
+              } as ApiResponse);
+              return;
+            }
+            
+            // Pick best torrent (highest seeders)
+            const bestTorrent = searchResults.sort((a, b) => b.seeders - a.seeders)[0];
+            magnetLink = bestTorrent.magnetLink;
+            torrentInfo = {
+              seeders: bestTorrent.seeders,
+              leechers: bestTorrent.leechers,
+              size: bestTorrent.sizeFormatted,
+              provider: bestTorrent.provider,
+            };
+            
+            getLogger().info(`Selected torrent: ${bestTorrent.title} (${bestTorrent.seeders} seeders)`, { context: "download-start" });
+            
+          } catch (searchErr: any) {
+            getLogger().error("Torrent search failed", searchErr instanceof Error ? searchErr : new Error(String(searchErr)), { query: searchQuery });
+            res.status(500).json({ 
               success: false, 
-              error: "No torrents found. Try different quality or check back later." 
+              error: `Failed to search torrents: ${String(searchErr)}` 
             } as ApiResponse);
             return;
           }
-          
-          // Pick best torrent (highest seeders)
-          const bestTorrent = searchResults.sort((a, b) => b.seeders - a.seeders)[0];
-          
-          // Generate job ID
-          const jobId = `${body.mediaType}-${body.tmdbId}-${body.quality || '1080p'}-${Date.now()}`;
-          
-          job = {
-            id: jobId,
-            sourceType: "torrent",
-            sourceUrn: bestTorrent.magnetLink,
-            status: "queued",
-            title: body.title,
-            metadata: {
-              tmdbId: body.tmdbId,
-              mediaType: body.mediaType,
-              quality: body.quality || bestTorrent.quality,
-              torrentInfo: {
-                seeders: bestTorrent.seeders,
-                leechers: bestTorrent.leechers,
-                size: bestTorrent.sizeFormatted,
-                provider: bestTorrent.provider,
-              }
-            }
-          };
-          
-          getLogger().info(`Selected torrent: ${bestTorrent.title} (${bestTorrent.seeders} seeders)`, { context: "download-start" });
-          
-        } catch (searchErr: any) {
-          getLogger().error("Torrent search failed", searchErr instanceof Error ? searchErr : new Error(String(searchErr)), { query: searchQuery });
-          res.status(500).json({ 
-            success: false, 
-            error: `Failed to search torrents: ${String(searchErr)}` 
-          } as ApiResponse);
-          return;
         }
+        
+        // Generate job ID
+        const jobId = `${body.mediaType}-${body.tmdbId}-${body.quality || '1080p'}-${Date.now()}`;
+        
+        job = {
+          id: jobId,
+          sourceType: "torrent",
+          sourceUrn: magnetLink,
+          status: "queued",
+          title: body.title,
+          metadata: {
+            tmdbId: body.tmdbId,
+            mediaType: body.mediaType,
+            quality: body.quality || '1080p',
+            torrentInfo,
+          }
+        };
       }
       // Legacy format: direct magnet link
       else if (body.id && body.sourceType && body.sourceUrn) {
