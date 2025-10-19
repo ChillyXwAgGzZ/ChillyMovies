@@ -26,10 +26,35 @@ export interface TrailerInfo {
   publishedAt: string;
 }
 
+export interface TVEpisode {
+  id: number;
+  name: string;
+  overview: string;
+  episodeNumber: number;
+  seasonNumber: number;
+  airDate?: string;
+  runtime?: number;
+  stillPath?: string;
+  voteAverage?: number;
+}
+
+export interface TVSeason {
+  id: number;
+  name: string;
+  overview: string;
+  seasonNumber: number;
+  episodeCount: number;
+  airDate?: string;
+  posterPath?: string;
+  episodes?: TVEpisode[];
+}
+
 export interface MetadataFetcher {
   fetchByTMDBId(tmdbId: number, mediaType?: "movie" | "tv"): Promise<MediaMetadata | null>;
   searchByTitle(title: string): Promise<MediaMetadata[]>;
   fetchTrailers(tmdbId: number, mediaType?: "movie" | "tv"): Promise<TrailerInfo[]>;
+  fetchTVSeasons?(tmdbId: number): Promise<TVSeason[]>;
+  fetchTVSeasonDetails?(tmdbId: number, seasonNumber: number): Promise<TVSeason | null>;
 }
 
 export interface TMDBFetcherOptions {
@@ -42,7 +67,7 @@ export interface TMDBFetcherOptions {
 export class TMDBMetadataFetcher implements MetadataFetcher {
   private apiKey: string;
   private baseUrl: string;
-  private cache: Cache<MediaMetadata | MediaMetadata[] | TrailerInfo[]> | null = null;
+  private cache: Cache<MediaMetadata | MediaMetadata[] | TrailerInfo[] | TVSeason[] | TVSeason> | null = null;
   private apiKeyInitialized: boolean = false;
 
   constructor(options?: TMDBFetcherOptions) {
@@ -256,6 +281,127 @@ export class TMDBMetadataFetcher implements MetadataFetcher {
     }
 
     return results;
+  }
+
+  /**
+   * Fetch TV show seasons (without episode details)
+   */
+  async fetchTVSeasons(tmdbId: number): Promise<TVSeason[]> {
+    await this.ensureApiKey();
+    
+    if (!this.apiKey) {
+      throw new Error("TMDB API key not configured");
+    }
+
+    // Check cache first
+    const cacheKey = createCacheKey("tmdb", "seasons", tmdbId);
+    if (this.cache) {
+      const cached = this.cache.get(cacheKey);
+      if (cached) {
+        return cached as TVSeason[];
+      }
+    }
+
+    const results = await withRetry(async () => {
+      const url = `${this.baseUrl}/tv/${tmdbId}?api_key=${this.apiKey}`;
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        if (response.status === 404) return [];
+        if (response.status === 429) {
+          throw new Error("TMDB API rate limit exceeded. Please try again later.");
+        }
+        throw new Error(`TMDB API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data: any = await response.json();
+      
+      // Extract seasons from TV show details
+      const seasons = (data.seasons || [])
+        .map((season: any) => ({
+          id: season.id,
+          name: season.name,
+          overview: season.overview || "",
+          seasonNumber: season.season_number,
+          episodeCount: season.episode_count,
+          airDate: season.air_date,
+          posterPath: season.poster_path ? `https://image.tmdb.org/t/p/w500${season.poster_path}` : undefined,
+        }));
+
+      return seasons;
+    }, { retries: 2 });
+
+    // Cache the results for 6 hours (season data doesn't change often)
+    if (this.cache && results.length > 0) {
+      this.cache.set(cacheKey, results, 21600000); // 6 hours
+    }
+
+    return results;
+  }
+
+  /**
+   * Fetch detailed information for a specific season including all episodes
+   */
+  async fetchTVSeasonDetails(tmdbId: number, seasonNumber: number): Promise<TVSeason | null> {
+    await this.ensureApiKey();
+    
+    if (!this.apiKey) {
+      throw new Error("TMDB API key not configured");
+    }
+
+    // Check cache first
+    const cacheKey = createCacheKey("tmdb", "season-details", tmdbId, seasonNumber);
+    if (this.cache) {
+      const cached = this.cache.get(cacheKey);
+      if (cached) {
+        return cached as TVSeason;
+      }
+    }
+
+    const result = await withRetry(async () => {
+      const url = `${this.baseUrl}/tv/${tmdbId}/season/${seasonNumber}?api_key=${this.apiKey}`;
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        if (response.status === 404) return null;
+        if (response.status === 429) {
+          throw new Error("TMDB API rate limit exceeded. Please try again later.");
+        }
+        throw new Error(`TMDB API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data: any = await response.json();
+      
+      const season: TVSeason = {
+        id: data.id,
+        name: data.name,
+        overview: data.overview || "",
+        seasonNumber: data.season_number,
+        episodeCount: data.episodes?.length || 0,
+        airDate: data.air_date,
+        posterPath: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : undefined,
+        episodes: (data.episodes || []).map((ep: any) => ({
+          id: ep.id,
+          name: ep.name,
+          overview: ep.overview || "",
+          episodeNumber: ep.episode_number,
+          seasonNumber: ep.season_number,
+          airDate: ep.air_date,
+          runtime: ep.runtime,
+          stillPath: ep.still_path ? `https://image.tmdb.org/t/p/w500${ep.still_path}` : undefined,
+          voteAverage: ep.vote_average,
+        })),
+      };
+
+      return season;
+    }, { retries: 2 });
+
+    // Cache the results for 6 hours
+    if (this.cache && result) {
+      this.cache.set(cacheKey, result, 21600000); // 6 hours
+    }
+
+    return result;
   }
 
   /**
