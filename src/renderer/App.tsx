@@ -1,5 +1,5 @@
-import { useCallback, useState } from "react";
-import { HashRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
+import { useCallback, useState, useEffect } from "react";
+import { HashRouter as Router, Routes, Route, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 import HomeView from "./views/HomeView";
@@ -13,11 +13,15 @@ import { ToastProvider } from "./components/Toast";
 import { ThemeProvider } from "./context/ThemeContext";
 
 function AppContent() {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchResults, setSearchResults] = useState<MediaMetadata[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Get search query from URL params
+  const searchQuery = searchParams.get("q") || "";
 
   // Debounced search function
   const performSearch = useCallback(
@@ -45,17 +49,37 @@ function AppContent() {
     []
   );
 
+  // Perform search when query param changes
+  useEffect(() => {
+    if (searchQuery) {
+      performSearch(searchQuery);
+    } else {
+      setSearchResults([]);
+      setIsSearching(false);
+    }
+  }, [searchQuery, performSearch]);
+
   const handleSearch = useCallback(
     (query: string) => {
-      setSearchQuery(query);
-      if (query.trim()) {
-        performSearch(query);
+      const trimmedQuery = query.trim();
+      
+      if (trimmedQuery) {
+        // Navigate to home with search query
+        if (location.pathname !== "/") {
+          navigate(`/?q=${encodeURIComponent(trimmedQuery)}`);
+        } else {
+          setSearchParams({ q: trimmedQuery });
+        }
       } else {
+        // Clear search
+        if (location.pathname === "/") {
+          setSearchParams({});
+        }
         setSearchResults([]);
         setIsSearching(false);
       }
     },
-    [performSearch]
+    [navigate, location.pathname, setSearchParams]
   );
 
   return (

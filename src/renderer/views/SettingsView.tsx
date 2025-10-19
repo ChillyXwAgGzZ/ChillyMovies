@@ -1,18 +1,21 @@
 // src/renderer/views/SettingsView.tsx
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Sun, Moon, Monitor } from 'lucide-react';
+import { Sun, Moon, Monitor, FolderOpen } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { useToast } from '../components/Toast';
 
 const SettingsView = () => {
   const { t } = useTranslation();
   const { theme, setTheme } = useTheme();
+  const { showToast } = useToast();
   const [settings, setSettings] = useState({
     downloadPath: '/Users/chilly/Downloads',
     downloadLimit: 0, // 0 for unlimited
     uploadLimit: 0, // 0 for unlimited
     telemetry: true,
   });
+  const [isSelectingPath, setIsSelectingPath] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -27,6 +30,47 @@ const SettingsView = () => {
       ...prev,
       [name]: parseInt(value, 10) || 0,
     }));
+  };
+
+  const handleBrowseDirectory = async () => {
+    // Check if running in Electron
+    if (!window.electronAPI) {
+      showToast({
+        type: 'warning',
+        title: t('settings.electronRequired') || 'Feature Not Available',
+        message: t('settings.electronRequiredMessage') || 'This feature requires the desktop app. In development mode, you can manually enter the path.',
+        duration: 4000,
+      });
+      return;
+    }
+
+    try {
+      setIsSelectingPath(true);
+      const selectedPath = await window.electronAPI.dialog.selectDirectory();
+      
+      if (selectedPath) {
+        setSettings(prev => ({
+          ...prev,
+          downloadPath: selectedPath,
+        }));
+        showToast({
+          type: 'success',
+          title: t('settings.pathUpdated') || 'Path Updated',
+          message: `Download location set to: ${selectedPath}`,
+          duration: 3000,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to select directory:', err);
+      showToast({
+        type: 'error',
+        title: t('settings.pathError') || 'Selection Failed',
+        message: t('settings.pathErrorMessage') || 'Failed to select directory. Please try again.',
+        duration: 4000,
+      });
+    } finally {
+      setIsSelectingPath(false);
+    }
   };
 
   return (
@@ -92,17 +136,31 @@ const SettingsView = () => {
               <label htmlFor="downloadPath" className="block text-sm font-medium text-gray-300 mb-1">
                 {t('Download Location')}
               </label>
-              <div className="flex">
+              <div className="flex gap-2">
                 <input
                   type="text"
                   id="downloadPath"
                   name="downloadPath"
                   value={settings.downloadPath}
                   onChange={handleInputChange}
-                  className="flex-grow bg-gray-700 border border-gray-600 rounded-l-md px-3 py-2 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="flex-grow bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 />
-                <button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-r-md">
-                  {t('Browse')}
+                <button 
+                  onClick={handleBrowseDirectory}
+                  disabled={isSelectingPath}
+                  className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded-md flex items-center gap-2 transition"
+                >
+                  {isSelectingPath ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      {t('settings.selecting') || 'Selecting...'}
+                    </>
+                  ) : (
+                    <>
+                      <FolderOpen className="h-4 w-4" />
+                      {t('Browse')}
+                    </>
+                  )}
                 </button>
               </div>
             </div>

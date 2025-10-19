@@ -20,6 +20,9 @@ declare global {
         getVersion: () => Promise<string>;
         getPath: (name: string) => Promise<string>;
       };
+      dialog: {
+        selectDirectory: () => Promise<string | null>;
+      };
     };
   }
 }

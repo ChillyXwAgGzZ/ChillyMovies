@@ -29,6 +29,11 @@ contextBridge.exposeInMainWorld("electronAPI", {
     getVersion: () => ipcRenderer.invoke("app:get-version"),
     getPath: (name: string) => ipcRenderer.invoke("app:get-path", name),
   },
+
+  // Dialog
+  dialog: {
+    selectDirectory: () => ipcRenderer.invoke("dialog:select-directory"),
+  },
 });
 
 /**
@@ -51,6 +56,9 @@ export interface ElectronAPI {
   app: {
     getVersion: () => Promise<string>;
     getPath: (name: string) => Promise<string>;
+  };
+  dialog: {
+    selectDirectory: () => Promise<string | null>;
   };
 }
 
