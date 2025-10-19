@@ -156,6 +156,12 @@ const resources = {
       "Enable anonymous usage statistics": "Enable anonymous usage statistics",
       "Help us improve ChillyMovies by sending anonymous usage data. We will never collect personal information.": "Help us improve ChillyMovies by sending anonymous usage data. We will never collect personal information.",
       "Save Settings": "Save Settings",
+      "settings.electronRequired": "Feature Not Available",
+      "settings.electronRequiredMessage": "This feature requires the desktop app. In development mode, you can manually enter the path.",
+      "settings.pathUpdated": "Path Updated",
+      "settings.pathError": "Selection Failed",
+      "settings.pathErrorMessage": "Failed to select directory. Please try again.",
+      "settings.selecting": "Selecting...",
 
       // Common
       "common.save": "Save",
@@ -340,6 +346,12 @@ const resources = {
       "Enable anonymous usage statistics": "Wezesha takwimu za matumizi zisizo za kibinafsi",
       "Help us improve ChillyMovies by sending anonymous usage data. We will never collect personal information.": "Tusaidie kuboresha ChillyMovies kwa kutuma data ya matumizi isiyo ya kibinafsi. Hatutakusanya taarifa za kibinafsi kamwe.",
       "Save Settings": "Hifadhi Mipangilio",
+      "settings.electronRequired": "Kipengele Hakipatikani",
+      "settings.electronRequiredMessage": "Kipengele hiki kinahitaji programu ya kompyuta. Katika hali ya maendeleo, unaweza kuingiza njia mwenyewe.",
+      "settings.pathUpdated": "Njia Imesasishwa",
+      "settings.pathError": "Uchaguzi Umeshindwa",
+      "settings.pathErrorMessage": "Imeshindwa kuchagua saraka. Tafadhali jaribu tena.",
+      "settings.selecting": "Inachagua...",
 
       // Common
       "common.save": "Hifadhi",
