@@ -59,8 +59,39 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
         setError(t("download.noTorrents") || "No torrents found for this quality. Try a different quality.");
       } else {
         setTorrents(results);
-        // Auto-select the best torrent (highest seeders)
-        const best = results.sort((a: TorrentResult, b: TorrentResult) => b.seeders - a.seeders)[0];
+        // Auto-select the smallest file size (but still with decent seeders)
+        const sortedResults = results
+          .filter((torrent: TorrentResult) => torrent.seeders >= 1) // Ensure it has at least 1 seeder
+          .sort((a: TorrentResult, b: TorrentResult) => {
+            // Parse size strings to numbers for comparison (assume format like "1.2 GB", "850 MB")
+            const parseSize = (sizeStr: string): number => {
+              const match = sizeStr.match(/^([\d.]+)\s*(GB|MB|KB)$/i);
+              if (!match) return 0;
+              const value = parseFloat(match[1]);
+              const unit = match[2].toUpperCase();
+              switch (unit) {
+                case 'GB': return value * 1024 * 1024;
+                case 'MB': return value * 1024;
+                case 'KB': return value;
+                default: return value;
+              }
+            };
+            
+            const sizeA = parseSize(a.sizeFormatted);
+            const sizeB = parseSize(b.sizeFormatted);
+            
+            // If sizes are similar (within 10%), prefer higher seeders
+            const sizeDiff = Math.abs(sizeA - sizeB);
+            const avgSize = (sizeA + sizeB) / 2;
+            if (sizeDiff / avgSize < 0.1) {
+              return b.seeders - a.seeders;
+            }
+            
+            // Otherwise, prefer smaller size
+            return sizeA - sizeB;
+          });
+        
+        const best = sortedResults.length > 0 ? sortedResults[0] : results[0];
         setSelectedTorrent(best);
       }
     } catch (err) {
@@ -227,19 +258,32 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
               {/* Torrent Results */}
               {!loading && torrents.length > 0 && (
                 <div className="space-y-3">
-                  <label className="block text-sm font-medium mb-3 text-gray-300">
-                    {t("download.availableTorrents") || "Available Torrents"} ({torrents.length})
-                  </label>
-                  {torrents.map((torrent) => (
-                    <button
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="block text-sm font-medium text-gray-300">
+                      {t("download.availableTorrents") || "Available Torrents"} ({torrents.length})
+                    </label>
+                    <div className="text-xs text-gray-500">
+                      {selectedTorrent && (
+                        <span>✨ Smallest size auto-selected</span>
+                      )}
+                    </div>
+                  </div>
+                  {torrents.map((torrent, index) => (
+                    <div
                       key={torrent.id}
-                      onClick={() => setSelectedTorrent(torrent)}
-                      className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                      className={`relative p-4 rounded-lg border-2 transition-all cursor-pointer ${
                         selectedTorrent?.id === torrent.id
                           ? "border-indigo-500 bg-indigo-900/30 shadow-lg shadow-indigo-500/20"
                           : "border-gray-700 bg-gray-700/30 hover:border-gray-600 hover:bg-gray-700/50"
                       }`}
+                      onClick={() => setSelectedTorrent(torrent)}
                     >
+                      {/* Auto-selected badge */}
+                      {index === 0 && selectedTorrent?.id === torrent.id && (
+                        <div className="absolute -top-2 -left-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                          AUTO
+                        </div>
+                      )}
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1 pr-4">
                           <div className="flex items-center gap-2 mb-1">
@@ -272,9 +316,9 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
                           <span className="font-medium">{torrent.leechers}</span>
                           <span className="ml-1 text-gray-400">{t("download.leechers") || "leechers"}</span>
                         </div>
-                        <div className="flex items-center text-gray-400">
+                        <div className="flex items-center text-blue-400">
                           <HardDrive className="h-4 w-4 mr-1" />
-                          <span className="font-medium">{torrent.sizeFormatted}</span>
+                          <span className="font-bold">{torrent.sizeFormatted}</span>
                         </div>
                         {torrent.seeders > 0 && (
                           <div className="flex items-center">
@@ -291,7 +335,7 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
                           </div>
                         )}
                       </div>
-                    </button>
+                    </div>
                   ))}
                 </div>
               )}

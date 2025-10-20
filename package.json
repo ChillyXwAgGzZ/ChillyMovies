@@ -3,6 +3,10 @@
   "productName": "Chilly Movies",
   "version": "0.1.0",
   "description": "Desktop-first offline movie downloader and player",
+  "author": {
+    "name": "ChillyMovies Team",
+    "email": "team@chillymovies.app"
+  },
   "private": true,
   "main": "dist/main/main/main.js",
   "types": "dist/index.d.ts",

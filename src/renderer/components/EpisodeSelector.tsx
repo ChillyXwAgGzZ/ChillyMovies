@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Download, X, CheckSquare, Square, Loader2, Play } from "lucide-react";
-import { downloadApi, torrentApi, ApiError } from "../services/api";
+import { downloadApi, torrentApi, metadataApi, ApiError } from "../services/api";
 import { useToast } from "./Toast";
 
 interface Episode {
@@ -42,17 +42,43 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
   const { t } = useTranslation();
   const { showToast } = useToast();
   
-  const [selectedSeason, setSelectedSeason] = useState<Season | null>(
-    seasons.length > 0 ? seasons[0] : null
-  );
+  const [selectedSeason, setSelectedSeason] = useState<Season | null>(null);
   const [selectedEpisodes, setSelectedEpisodes] = useState<Set<number>>(new Set());
   const [loadingEpisodes, setLoadingEpisodes] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState<Map<number, number>>(new Map());
 
-  const handleSeasonChange = (season: Season) => {
+  // Load episodes for the first season on mount
+  useEffect(() => {
+    if (seasons.length > 0 && !selectedSeason) {
+      handleSeasonChange(seasons[0]);
+    }
+  }, [seasons]);
+
+  const handleSeasonChange = async (season: Season) => {
     setSelectedSeason(season);
     setSelectedEpisodes(new Set());
+    
+    // If season doesn't have episodes loaded, fetch them
+    if (!season.episodes || season.episodes.length === 0) {
+      setLoadingEpisodes(true);
+      try {
+        const seasonDetails = await metadataApi.getTVSeasonDetails(tmdbId, season.seasonNumber);
+        // Update the season with loaded episodes
+        season.episodes = seasonDetails.episodes;
+        setSelectedSeason({ ...season });
+      } catch (err) {
+        console.error(`Failed to load episodes for season ${season.seasonNumber}:`, err);
+        showToast({
+          type: 'error',
+          title: 'Failed to Load Episodes',
+          message: `Could not load episodes for ${season.name}`,
+          duration: 4000,
+        });
+      } finally {
+        setLoadingEpisodes(false);
+      }
+    }
   };
 
   const toggleEpisode = (episodeNumber: number) => {
