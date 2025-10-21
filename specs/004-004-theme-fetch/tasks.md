@@ -77,17 +77,17 @@ description: "Task list for Theme Propagation, Fetch Fixes & UI Polish"
 
 ### Tests for User Story 2 (integration tests)
 
-- [ ] T021 [P] [US2] Create `tests/integration/movie-detail.test.ts`: test fetching movie details from TMDB API, verify response structure
-- [ ] T022 [P] [US2] Create `tests/integration/tv-detail.test.ts`: test fetching TV show details and seasons from TMDB API, verify response structure
+- [x] T021 [P] [US2] Create `tests/integration/movie-detail.test.ts`: test fetching movie details from TMDB API, verify response structure
+- [x] T022 [P] [US2] Create `tests/integration/tv-detail.test.ts`: test fetching TV show details and seasons from TMDB API, verify response structure
 
 ### Implementation for User Story 2
 
-- [ ] T020 [US2] Fix `src/renderer/views/MovieDetailView.tsx`: ensure `metadataApi.getDetails(id, "movie")` handles errors gracefully, add proper loading/error states
-- [ ] T021 [US2] Fix `src/renderer/views/TVDetailView.tsx`: ensure `metadataApi.getDetails(id, "tv")` and `metadataApi.getTVSeasons(id)` handle errors gracefully
-- [ ] T022 [US2] Add retry logic in `src/renderer/services/api.ts` if TMDB API call fails (use p-retry or manual retry with backoff)
-- [ ] T023 [US2] Improve error messages: distinguish between network errors, rate limits, and 404s
-- [ ] T024 [US2] Test with known TMDB IDs: movie/550, tv/1396, verify data loads, posters/backdrops display, ratings show correctly
-- [ ] T025 [US2] Test error handling: simulate network failure, verify error message and retry button work
+- [x] T023 [US2] Fix `src/renderer/views/MovieDetailView.tsx`: ensure `metadataApi.getDetails(id, "movie")` handles errors gracefully, add proper loading/error states
+- [x] T024 [US2] Fix `src/renderer/views/TVDetailView.tsx`: ensure `metadataApi.getDetails(id, "tv")` and `metadataApi.getTVSeasons(id)` handle errors gracefully
+- [x] T025 [US2] Add retry logic in `src/renderer/services/api.ts` with exponential backoff (max 3 retries, 1s initial delay, 10s max delay)
+- [x] T026 [US2] Improve error messages: distinguish between network errors, rate limits, 404s, server errors, and client errors with user-friendly messages
+- [ ] T027 [US2] Test with known TMDB IDs: movie/550, tv/1396, verify data loads, posters/backdrops display, ratings show correctly
+- [ ] T028 [US2] Test error handling: simulate network failure, verify error message and retry button work
 
 **Checkpoint**: Movie and TV detail pages load reliably, with proper loading/error UX
 
