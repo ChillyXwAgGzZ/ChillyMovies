@@ -44,6 +44,7 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
   
   const [selectedSeason, setSelectedSeason] = useState<Season | null>(null);
   const [selectedEpisodes, setSelectedEpisodes] = useState<Set<number>>(new Set());
+  const [selectedQuality, setSelectedQuality] = useState<string>("1080p");
   const [loadingEpisodes, setLoadingEpisodes] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState<Map<number, number>>(new Map());
@@ -132,10 +133,10 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
         const episodeQuery = `${title} S${String(selectedSeason.seasonNumber).padStart(2, '0')}E${String(episode.episodeNumber).padStart(2, '0')}`;
         
         try {
-          // Search for torrent
+          // Search for torrent with selected quality
           const results = await torrentApi.search(episodeQuery, {
             limit: 5,
-            quality: ['1080p', '720p'],
+            quality: [selectedQuality],
             minSeeders: 1,
           });
 
@@ -146,7 +147,7 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
               tmdbId,
               mediaType: 'tv',
               title: `${title} - ${episode.name}`,
-              quality: bestTorrent.quality || '1080p',
+              quality: selectedQuality,
               sourceUrn: bestTorrent.magnetLink,
               seasonNumber: selectedSeason.seasonNumber,
               episodeNumber: episode.episodeNumber,
@@ -340,18 +341,56 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
 
         {/* Footer */}
         <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gradient-to-br from-gray-50 to-gray-100/50 dark:from-gray-800/50 dark:to-gray-800/30">
+          {/* Quality Selector */}
+          {selectedEpisodes.size > 0 && (
+            <div className="mb-4 p-4 bg-white dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-700">
+              <label className="block mb-3">
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  Download Quality for All Selected Episodes
+                </span>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  This quality will be applied to all {selectedEpisodes.size} selected episode(s)
+                </p>
+              </label>
+              <div className="grid grid-cols-4 gap-2">
+                {["2160p", "1080p", "720p", "480p"].map((quality) => (
+                  <button
+                    key={quality}
+                    onClick={() => setSelectedQuality(quality)}
+                    className={`px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 ${
+                      selectedQuality === quality
+                        ? "bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-lg shadow-indigo-500/30 scale-105"
+                        : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 hover:scale-[1.02]"
+                    }`}
+                  >
+                    {quality}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Action Section */}
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-600 dark:text-gray-400">
-              {selectedEpisodes.size > 0 && (
-                <span>
-                  {selectedEpisodes.size} episode(s) will be downloaded sequentially
-                </span>
+              {selectedEpisodes.size > 0 ? (
+                <div>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    {selectedEpisodes.size} episode(s)
+                  </span>
+                  {" "}· Quality: {" "}
+                  <span className="font-semibold text-indigo-600 dark:text-indigo-400">
+                    {selectedQuality}
+                  </span>
+                </div>
+              ) : (
+                <span>Select episodes to download</span>
               )}
             </div>
             <div className="flex gap-3">
               <button
                 onClick={onClose}
-                className="px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-xl font-semibold transition-all hover:scale-[1.02]"
+                className="px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-xl font-semibold transition-all hover:scale-[1.02]"
               >
                 {t("common.cancel") || "Cancel"}
               </button>
