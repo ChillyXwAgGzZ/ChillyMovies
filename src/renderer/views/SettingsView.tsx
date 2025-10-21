@@ -75,13 +75,13 @@ const SettingsView = () => {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-white dark:text-white mb-6">{t('Settings')}</h2>
+      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{t('Settings')}</h2>
       <div className="space-y-8">
         {/* Appearance Settings */}
-        <div className="bg-gray-800 dark:bg-gray-800 p-6 rounded-lg border border-gray-700">
-          <h3 className="text-lg font-semibold text-white mb-4">{t('Appearance')}</h3>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('Appearance')}</h3>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-3">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
               {t('Theme')}
             </label>
             <div className="grid grid-cols-3 gap-3">
@@ -90,11 +90,11 @@ const SettingsView = () => {
                 className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition ${
                   theme === 'light'
                     ? 'border-indigo-500 bg-indigo-500/10'
-                    : 'border-gray-700 hover:border-gray-600 bg-gray-700/30'
+                    : 'border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600 bg-gray-100 dark:bg-gray-700/30'
                 }`}
               >
-                <Sun className={`h-6 w-6 ${theme === 'light' ? 'text-indigo-400' : 'text-gray-400'}`} />
-                <span className={`text-sm font-medium ${theme === 'light' ? 'text-white' : 'text-gray-400'}`}>
+                <Sun className={`h-6 w-6 ${theme === 'light' ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400'}`} />
+                <span className={`text-sm font-medium ${theme === 'light' ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'}`}>
                   {t('Light')}
                 </span>
               </button>
@@ -103,11 +103,11 @@ const SettingsView = () => {
                 className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition ${
                   theme === 'dark'
                     ? 'border-indigo-500 bg-indigo-500/10'
-                    : 'border-gray-700 hover:border-gray-600 bg-gray-700/30'
+                    : 'border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600 bg-gray-100 dark:bg-gray-700/30'
                 }`}
               >
-                <Moon className={`h-6 w-6 ${theme === 'dark' ? 'text-indigo-400' : 'text-gray-400'}`} />
-                <span className={`text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-400'}`}>
+                <Moon className={`h-6 w-6 ${theme === 'dark' ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400'}`} />
+                <span className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'}`}>
                   {t('Dark')}
                 </span>
               </button>
@@ -116,11 +116,11 @@ const SettingsView = () => {
                 className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition ${
                   theme === 'system'
                     ? 'border-indigo-500 bg-indigo-500/10'
-                    : 'border-gray-700 hover:border-gray-600 bg-gray-700/30'
+                    : 'border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600 bg-gray-100 dark:bg-gray-700/30'
                 }`}
               >
-                <Monitor className={`h-6 w-6 ${theme === 'system' ? 'text-indigo-400' : 'text-gray-400'}`} />
-                <span className={`text-sm font-medium ${theme === 'system' ? 'text-white' : 'text-gray-400'}`}>
+                <Monitor className={`h-6 w-6 ${theme === 'system' ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400'}`} />
+                <span className={`text-sm font-medium ${theme === 'system' ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'}`}>
                   {t('System')}
                 </span>
               </button>
@@ -129,11 +129,11 @@ const SettingsView = () => {
         </div>
 
         {/* Download Settings */}
-        <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
-          <h3 className="text-lg font-semibold text-white mb-4">{t('Downloads')}</h3>
-          <div className="space-y-4">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('Downloads')}</h3>
+                    <div className="space-y-4">
             <div>
-              <label htmlFor="downloadPath" className="block text-sm font-medium text-gray-300 mb-1">
+              <label htmlFor="downloadPath" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 {t('Download Location')}
               </label>
               <div className="flex gap-2">
@@ -143,12 +143,12 @@ const SettingsView = () => {
                   name="downloadPath"
                   value={settings.downloadPath}
                   onChange={handleInputChange}
-                  className="flex-grow bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="flex-grow bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 />
                 <button 
                   onClick={handleBrowseDirectory}
                   disabled={isSelectingPath}
-                  className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded-md flex items-center gap-2 transition"
+                  className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded-md flex items-center gap-2 transition"
                 >
                   {isSelectingPath ? (
                     <>
@@ -166,7 +166,7 @@ const SettingsView = () => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="downloadLimit" className="block text-sm font-medium text-gray-300 mb-1">
+                <label htmlFor="downloadLimit" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   {t('Download Speed Limit (KB/s)')}
                 </label>
                 <input
@@ -175,12 +175,12 @@ const SettingsView = () => {
                   name="downloadLimit"
                   value={settings.downloadLimit}
                   onChange={(e) => handleLimitChange('downloadLimit', e.target.value)}
-                  className="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                   placeholder="0 for unlimited"
                 />
               </div>
               <div>
-                <label htmlFor="uploadLimit" className="block text-sm font-medium text-gray-300 mb-1">
+                <label htmlFor="uploadLimit" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   {t('Upload Speed Limit (KB/s)')}
                 </label>
                 <input
@@ -189,7 +189,7 @@ const SettingsView = () => {
                   name="uploadLimit"
                   value={settings.uploadLimit}
                   onChange={(e) => handleLimitChange('uploadLimit', e.target.value)}
-                  className="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                   placeholder="0 for unlimited"
                 />
               </div>
@@ -198,8 +198,8 @@ const SettingsView = () => {
         </div>
 
         {/* Privacy Settings */}
-        <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
-          <h3 className="text-lg font-semibold text-white mb-4">{t('Privacy')}</h3>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('Privacy')}</h3>
           <div className="flex items-center">
             <input
               id="telemetry"
@@ -209,17 +209,17 @@ const SettingsView = () => {
               onChange={handleInputChange}
               className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
             />
-            <label htmlFor="telemetry" className="ml-3 block text-sm font-medium text-gray-300">
+            <label htmlFor="telemetry" className="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
               {t('Enable anonymous usage statistics')}
             </label>
           </div>
-          <p className="text-xs text-gray-400 mt-2">
+          <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
             {t('Help us improve ChillyMovies by sending anonymous usage data. We will never collect personal information.')}
           </p>
         </div>
 
         <div className="flex justify-end">
-          <button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md">
+          <button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md transition">
             {t('Save Settings')}
           </button>
         </div>

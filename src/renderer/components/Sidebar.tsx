@@ -46,7 +46,7 @@ const Sidebar: React.FC = () => {
     `flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-150 ${
       isActive
         ? "bg-indigo-600 text-white shadow-md"
-        : "text-gray-400 dark:text-gray-400 hover:bg-gray-700 dark:hover:bg-gray-700 hover:text-white"
+        : "text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
     }`;
 
   return (
@@ -128,7 +128,7 @@ const Sidebar: React.FC = () => {
               i18n.changeLanguage(nextLang);
               saveSettings({ language: nextLang });
             }}
-            className="p-2 text-gray-400 hover:text-white transition-colors"
+            className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
             title={t("sidebar.languageLabel")}
           >
             <Globe className="h-5 w-5" />

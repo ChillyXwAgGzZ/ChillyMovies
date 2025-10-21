@@ -181,18 +181,18 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
       {/* Download Panel Modal */}
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-fade-in">
-          <div className="bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col animate-slide-up">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col animate-slide-up">
             {/* Header */}
-            <div className="p-6 border-b border-gray-700 flex items-center justify-between">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold mb-1">{t("download.selectQuality") || "Select Download Quality"}</h2>
-                <p className="text-gray-400 text-sm">{title}</p>
+                <h2 className="text-2xl font-bold mb-1 text-gray-900 dark:text-white">{t("download.selectQuality") || "Select Download Quality"}</h2>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">{title}</p>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-2 hover:bg-gray-700 rounded-lg transition"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition"
               >
-                <X className="h-6 w-6" />
+                <X className="h-6 w-6 text-gray-600 dark:text-gray-400" />
               </button>
             </div>
 
@@ -200,7 +200,7 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
             <div className="flex-1 overflow-y-auto p-6">
               {/* Quality Selector */}
               <div className="mb-6">
-                <label className="block text-sm font-medium mb-3 text-gray-300">
+                <label className="block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">
                   {t("download.quality") || "Quality"}
                 </label>
                 <div className="grid grid-cols-4 gap-3">
@@ -212,7 +212,7 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
                       className={`px-4 py-3 rounded-lg font-semibold transition ${
                         selectedQuality === quality
                           ? "bg-indigo-600 text-white"
-                          : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                       } disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
                       {quality}
@@ -226,22 +226,22 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-500"></div>
-                    <p className="text-gray-400">{t("download.searching") || "Searching for torrents..."}</p>
+                    <p className="text-gray-600 dark:text-gray-400">{t("download.searching") || "Searching for torrents..."}</p>
                   </div>
                   {/* Skeleton Cards */}
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="p-4 rounded-lg border-2 border-gray-700 bg-gray-700/30 animate-pulse-shimmer">
+                    <div key={i} className="p-4 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700/30 animate-pulse-shimmer">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1 space-y-2">
-                          <div className="h-5 bg-gray-600 rounded w-3/4"></div>
-                          <div className="h-3 bg-gray-600 rounded w-1/4"></div>
+                          <div className="h-5 bg-gray-300 dark:bg-gray-600 rounded w-3/4"></div>
+                          <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-1/4"></div>
                         </div>
-                        <div className="h-7 w-16 bg-gray-600 rounded-full"></div>
+                        <div className="h-7 w-16 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
                       </div>
                       <div className="flex gap-6">
-                        <div className="h-4 bg-gray-600 rounded w-20"></div>
-                        <div className="h-4 bg-gray-600 rounded w-20"></div>
-                        <div className="h-4 bg-gray-600 rounded w-16"></div>
+                        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-20"></div>
+                        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-20"></div>
+                        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-16"></div>
                       </div>
                     </div>
                   ))}
@@ -259,10 +259,10 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
               {!loading && torrents.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between mb-3">
-                    <label className="block text-sm font-medium text-gray-300">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       {t("download.availableTorrents") || "Available Torrents"} ({torrents.length})
                     </label>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-gray-500 dark:text-gray-500">
                       {selectedTorrent && (
                         <span>✨ Smallest size auto-selected</span>
                       )}
@@ -273,8 +273,8 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
                       key={torrent.id}
                       className={`relative p-4 rounded-lg border-2 transition-all cursor-pointer ${
                         selectedTorrent?.id === torrent.id
-                          ? "border-indigo-500 bg-indigo-900/30 shadow-lg shadow-indigo-500/20"
-                          : "border-gray-700 bg-gray-700/30 hover:border-gray-600 hover:bg-gray-700/50"
+                          ? "border-indigo-500 bg-indigo-100 dark:bg-indigo-900/30 shadow-lg shadow-indigo-500/20"
+                          : "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/30 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700/50"
                       }`}
                       onClick={() => setSelectedTorrent(torrent)}
                     >
@@ -287,7 +287,7 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1 pr-4">
                           <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-semibold text-white line-clamp-1">
+                            <h4 className="font-semibold text-gray-900 dark:text-white line-clamp-1">
                               {torrent.title}
                             </h4>
                             {selectedTorrent?.id === torrent.id && (
@@ -296,7 +296,7 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
                               </span>
                             )}
                           </div>
-                          <p className="text-xs text-gray-400">
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
                             {t("download.provider") || "Provider"}: {torrent.provider}
                           </p>
                         </div>
@@ -306,17 +306,17 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
                       </div>
                       
                       <div className="flex items-center gap-6 text-sm">
-                        <div className="flex items-center text-green-400">
+                        <div className="flex items-center text-green-500 dark:text-green-400">
                           <Users className="h-4 w-4 mr-1" />
                           <span className="font-medium">{torrent.seeders}</span>
-                          <span className="ml-1 text-gray-400">{t("download.seeders") || "seeders"}</span>
+                          <span className="ml-1 text-gray-600 dark:text-gray-400">{t("download.seeders") || "seeders"}</span>
                         </div>
-                        <div className="flex items-center text-red-400">
+                        <div className="flex items-center text-red-500 dark:text-red-400">
                           <Users className="h-4 w-4 mr-1" />
                           <span className="font-medium">{torrent.leechers}</span>
-                          <span className="ml-1 text-gray-400">{t("download.leechers") || "leechers"}</span>
+                          <span className="ml-1 text-gray-600 dark:text-gray-400">{t("download.leechers") || "leechers"}</span>
                         </div>
-                        <div className="flex items-center text-blue-400">
+                        <div className="flex items-center text-blue-500 dark:text-blue-400">
                           <HardDrive className="h-4 w-4 mr-1" />
                           <span className="font-bold">{torrent.sizeFormatted}</span>
                         </div>
@@ -343,13 +343,13 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
 
             {/* Footer */}
             {torrents.length > 0 && !loading && (
-              <div className="p-6 border-t border-gray-700 bg-gray-800/50">
+              <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
                 <div className="flex items-center justify-between">
-                  <div className="text-sm text-gray-400">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
                     {selectedTorrent && (
                       <p>
                         {t("download.selected") || "Selected"}:{" "}
-                        <span className="font-semibold text-white">{selectedTorrent.title}</span>
+                        <span className="font-semibold text-gray-900 dark:text-white">{selectedTorrent.title}</span>
                         {" "}({selectedTorrent.sizeFormatted})
                       </p>
                     )}
@@ -357,14 +357,14 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
                   <div className="flex gap-3">
                     <button
                       onClick={() => setIsOpen(false)}
-                      className="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg font-semibold transition"
+                      className="px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg font-semibold transition"
                     >
                       {t("common.cancel") || "Cancel"}
                     </button>
                     <button
                       onClick={handleDownload}
                       disabled={!selectedTorrent || downloading}
-                      className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg font-semibold transition flex items-center"
+                      className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition flex items-center"
                     >
                       {downloading ? (
                         <>

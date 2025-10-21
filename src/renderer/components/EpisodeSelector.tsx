@@ -203,29 +203,29 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-fade-in">
-      <div className="bg-gray-800 rounded-xl shadow-2xl w-full max-w-6xl mx-4 max-h-[90vh] overflow-hidden flex flex-col animate-slide-up">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-6xl mx-4 max-h-[90vh] overflow-hidden flex flex-col animate-slide-up">
         {/* Header */}
-        <div className="p-6 border-b border-gray-700 flex items-center justify-between">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold mb-1">
+            <h2 className="text-2xl font-bold mb-1 text-gray-900 dark:text-white">
               {t("tv.selectEpisodes") || "Select Episodes"}
             </h2>
-            <p className="text-gray-400 text-sm">{title}</p>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">{title}</p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-700 rounded-lg transition"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition"
           >
-            <X className="h-6 w-6" />
+            <X className="h-6 w-6 text-gray-600 dark:text-gray-400" />
           </button>
         </div>
 
         {/* Content */}
         <div className="flex-1 overflow-hidden flex">
           {/* Seasons Sidebar */}
-          <div className="w-64 border-r border-gray-700 overflow-y-auto">
+          <div className="w-64 border-r border-gray-200 dark:border-gray-700 overflow-y-auto">
             <div className="p-4">
-              <h3 className="text-sm font-semibold text-gray-400 uppercase mb-3">
+              <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase mb-3">
                 {t("tv.seasons") || "Seasons"}
               </h3>
               <div className="space-y-2">
@@ -236,7 +236,7 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
                     className={`w-full text-left px-4 py-3 rounded-lg transition ${
                       selectedSeason?.id === season.id
                         ? "bg-indigo-600 text-white"
-                        : "bg-gray-700/50 text-gray-300 hover:bg-gray-700"
+                        : "bg-gray-100 dark:bg-gray-700/50 text-gray-900 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
                     }`}
                   >
                     <div className="font-semibold">{season.name}</div>
@@ -255,7 +255,7 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
               <>
                 {/* Selection Controls */}
                 <div className="flex items-center justify-between mb-4">
-                  <div className="text-sm text-gray-400">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
                     {selectedEpisodes.size} {t("tv.selected") || "selected"}
                   </div>
                   <div className="flex gap-2">
@@ -305,18 +305,18 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
                               <span className="text-sm font-bold text-indigo-400">
                                 E{String(episode.episodeNumber).padStart(2, '0')}
                               </span>
-                              <h4 className="font-semibold text-white truncate">
+                              <h4 className="font-semibold text-gray-900 dark:text-white truncate">
                                 {episode.name}
                               </h4>
                             </div>
                             
                             {episode.overview && (
-                              <p className="text-sm text-gray-400 line-clamp-2 mb-2">
+                              <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-2">
                                 {episode.overview}
                               </p>
                             )}
                             
-                            <div className="flex items-center gap-4 text-xs text-gray-500">
+                            <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-500">
                               {episode.airDate && (
                                 <span>{new Date(episode.airDate).toLocaleDateString()}</span>
                               )}
@@ -339,9 +339,9 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-700 bg-gray-800/50">
+        <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
           <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-400">
+            <div className="text-sm text-gray-600 dark:text-gray-400">
               {selectedEpisodes.size > 0 && (
                 <span>
                   {selectedEpisodes.size} episode(s) will be downloaded sequentially
