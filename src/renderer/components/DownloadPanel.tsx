@@ -355,14 +355,80 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
             {/* Footer */}
             {torrents.length > 0 && !loading && (
               <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gradient-to-br from-gray-50 to-gray-100/50 dark:from-gray-800/50 dark:to-gray-800/30">
+                {/* Selected Torrent Details */}
+                {selectedTorrent && (
+                  <div className="mb-4 p-4 bg-white dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-700">
+                    <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                      <Download className="h-4 w-4" />
+                      Selected Download Details
+                    </h3>
+                    <div className="space-y-2 text-sm">
+                      {/* Full Title */}
+                      <div className="flex items-start gap-2">
+                        <span className="text-gray-500 dark:text-gray-400 font-medium min-w-[80px]">Title:</span>
+                        <span className="text-gray-900 dark:text-white font-semibold flex-1">{selectedTorrent.title}</span>
+                      </div>
+                      
+                      {/* Quality Badge */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500 dark:text-gray-400 font-medium min-w-[80px]">Quality:</span>
+                        <span className="px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 text-xs font-bold rounded-full border border-indigo-300 dark:border-indigo-600">
+                          {selectedTorrent.quality}
+                        </span>
+                      </div>
+                      
+                      {/* File Size */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500 dark:text-gray-400 font-medium min-w-[80px]">Size:</span>
+                        <span className="text-gray-900 dark:text-white font-bold">{selectedTorrent.sizeFormatted}</span>
+                      </div>
+                      
+                      {/* Seeders/Leechers */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500 dark:text-gray-400 font-medium min-w-[80px]">Health:</span>
+                        <div className="flex items-center gap-4">
+                          <span className="flex items-center text-green-600 dark:text-green-400 font-medium">
+                            <Users className="h-3.5 w-3.5 mr-1" />
+                            {selectedTorrent.seeders} seeders
+                          </span>
+                          <span className="flex items-center text-red-600 dark:text-red-400 font-medium">
+                            <Users className="h-3.5 w-3.5 mr-1" />
+                            {selectedTorrent.leechers} leechers
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {/* Download Speed Estimate */}
+                      {selectedTorrent.seeders > 0 && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-500 dark:text-gray-400 font-medium min-w-[80px]">Speed:</span>
+                          <span className={`font-medium ${
+                            selectedTorrent.seeders > 100 ? 'text-green-600 dark:text-green-400' : 
+                            selectedTorrent.seeders > 50 ? 'text-yellow-600 dark:text-yellow-400' : 
+                            'text-orange-600 dark:text-orange-400'
+                          }`}>
+                            <Gauge className="h-3.5 w-3.5 inline mr-1" />
+                            {selectedTorrent.seeders > 100 ? 'Excellent (Fast download expected)' : 
+                             selectedTorrent.seeders > 50 ? 'Good (Normal speed)' : 
+                             'Slow (May take longer)'}
+                          </span>
+                        </div>
+                      )}
+                      
+                      {/* Provider */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500 dark:text-gray-400 font-medium min-w-[80px]">Source:</span>
+                        <span className="text-gray-900 dark:text-white">{selectedTorrent.provider}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Action Buttons */}
                 <div className="flex items-center justify-between">
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
                     {selectedTorrent && (
-                      <p>
-                        {t("download.selected") || "Selected"}:{" "}
-                        <span className="font-semibold text-gray-900 dark:text-white">{selectedTorrent.title}</span>
-                        {" "}({selectedTorrent.sizeFormatted})
-                      </p>
+                      <span>Ready to download • Review details above</span>
                     )}
                   </div>
                   <div className="flex gap-3">
