@@ -41,9 +41,13 @@ const resources = {
 
       // Sidebar
       "sidebar.languageLabel": "Language",
+      "sidebar.collapse": "Collapse",
+      "sidebar.expand": "Expand",
+      "sidebar.mainNavigation": "Main navigation",
+      "sidebar.primaryNavigation": "Primary navigation",
       "languages.english": "English",
       "languages.swahili": "Kiswahili",
-  "sidebar.tagline": "Offline cinema experience",
+      "sidebar.tagline": "Offline cinema experience",
 
       // Header
       "header.searchPlaceholder": "Search for movies, series...",
@@ -174,6 +178,9 @@ const resources = {
       "common.retry": "Retry",
       "common.back": "Back",
       "common.goBack": "Go Back",
+      "common.selectAll": "Select All",
+      "common.deselectAll": "Deselect All",
+      "common.backToHome": "Back to Home",
 
       // Movie Details
       "movie.releaseDate": "Release Date",
@@ -231,9 +238,13 @@ const resources = {
 
       // Sidebar
       "sidebar.languageLabel": "Lugha",
+      "sidebar.collapse": "Kunja",
+      "sidebar.expand": "Panua",
+      "sidebar.mainNavigation": "Urambazaji mkuu",
+      "sidebar.primaryNavigation": "Urambazaji wa msingi",
       "languages.english": "Kiingereza",
       "languages.swahili": "Kiswahili",
-  "sidebar.tagline": "Uzoefu wa sinema bila mtandao",
+      "sidebar.tagline": "Uzoefu wa sinema bila mtandao",
 
       // Header
       "header.searchPlaceholder": "Tafuta filamu, vipindi...",
@@ -364,6 +375,9 @@ const resources = {
       "common.retry": "Jaribu Tena",
       "common.back": "Rudi",
       "common.goBack": "Rudi Nyuma",
+      "common.selectAll": "Chagua Zote",
+      "common.deselectAll": "Ondoa Zote",
+      "common.backToHome": "Rudi Nyumbani",
 
       // Movie Details
       "movie.releaseDate": "Tarehe ya Kutolewa",

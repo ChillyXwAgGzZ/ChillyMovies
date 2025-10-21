@@ -261,13 +261,13 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
                   <div className="flex gap-2">
                     <button
                       onClick={selectAllEpisodes}
-                      className="px-4 py-2 text-sm bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 rounded-xl transition-all hover:scale-[1.02] shadow-md"
+                      className="px-4 py-2 text-sm bg-gradient-to-r from-gray-200 to-gray-100 dark:from-gray-700 dark:to-gray-600 hover:from-gray-300 hover:to-gray-200 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-900 dark:text-white rounded-xl transition-all hover:scale-[1.02] shadow-md border border-gray-300 dark:border-gray-600"
                     >
                       {t("common.selectAll") || "Select All"}
                     </button>
                     <button
                       onClick={deselectAllEpisodes}
-                      className="px-4 py-2 text-sm bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 rounded-xl transition-all hover:scale-[1.02] shadow-md"
+                      className="px-4 py-2 text-sm bg-gradient-to-r from-gray-200 to-gray-100 dark:from-gray-700 dark:to-gray-600 hover:from-gray-300 hover:to-gray-200 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-900 dark:text-white rounded-xl transition-all hover:scale-[1.02] shadow-md border border-gray-300 dark:border-gray-600"
                     >
                       {t("common.deselectAll") || "Deselect All"}
                     </button>
