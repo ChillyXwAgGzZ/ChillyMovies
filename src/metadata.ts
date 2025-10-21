@@ -14,6 +14,7 @@ export interface MediaMetadata {
   voteAverage?: number;
   releaseDate?: string;
   mediaType?: "movie" | "tv";
+  genreIds?: number[]; // TMDB genre IDs
 }
 
 export interface TrailerInfo {
@@ -456,6 +457,7 @@ export class TMDBMetadataFetcher implements MetadataFetcher {
           voteAverage: item.vote_average,
           releaseDate: item.release_date || item.first_air_date,
           mediaType: mediaType,
+          genreIds: item.genre_ids || [], // Include genre IDs from TMDB
         }));
     }, { 
       retries: 2

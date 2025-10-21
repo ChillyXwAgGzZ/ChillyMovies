@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { SlidersHorizontal, ChevronDown, ChevronUp, X } from "lucide-react";
 
 export interface FilterState {
-  genres: string[];
+  genres: number[]; // Changed from string[] to number[] for TMDB genre IDs
   yearRange: [number, number];
   minRating: number;
   sortBy: "popularity" | "rating" | "release_date" | "title";
@@ -15,45 +15,43 @@ interface FilterPanelProps {
 }
 
 const MOVIE_GENRES = [
-  { id: "28", name: "Action" },
-  { id: "12", name: "Adventure" },
-  { id: "16", name: "Animation" },
-  { id: "anime", name: "Anime" }, // Added Anime
-  { id: "35", name: "Comedy" },
-  { id: "80", name: "Crime" },
-  { id: "99", name: "Documentary" },
-  { id: "18", name: "Drama" },
-  { id: "10751", name: "Family" },
-  { id: "14", name: "Fantasy" },
-  { id: "36", name: "History" },
-  { id: "27", name: "Horror" },
-  { id: "10402", name: "Music" },
-  { id: "9648", name: "Mystery" },
-  { id: "10749", name: "Romance" },
-  { id: "878", name: "Science Fiction" },
-  { id: "53", name: "Thriller" },
-  { id: "10752", name: "War" },
-  { id: "37", name: "Western" },
+  { id: 28, name: "Action" },
+  { id: 12, name: "Adventure" },
+  { id: 16, name: "Animation" },
+  { id: 35, name: "Comedy" },
+  { id: 80, name: "Crime" },
+  { id: 99, name: "Documentary" },
+  { id: 18, name: "Drama" },
+  { id: 10751, name: "Family" },
+  { id: 14, name: "Fantasy" },
+  { id: 36, name: "History" },
+  { id: 27, name: "Horror" },
+  { id: 10402, name: "Music" },
+  { id: 9648, name: "Mystery" },
+  { id: 10749, name: "Romance" },
+  { id: 878, name: "Science Fiction" },
+  { id: 53, name: "Thriller" },
+  { id: 10752, name: "War" },
+  { id: 37, name: "Western" },
 ];
 
 const TV_GENRES = [
-  { id: "10759", name: "Action & Adventure" },
-  { id: "16", name: "Animation" },
-  { id: "anime", name: "Anime" }, // Added Anime
-  { id: "35", name: "Comedy" },
-  { id: "80", name: "Crime" },
-  { id: "99", name: "Documentary" },
-  { id: "18", name: "Drama" },
-  { id: "10751", name: "Family" },
-  { id: "10762", name: "Kids" },
-  { id: "9648", name: "Mystery" },
-  { id: "10763", name: "News" },
-  { id: "10764", name: "Reality" },
-  { id: "10765", name: "Sci-Fi & Fantasy" },
-  { id: "10766", name: "Soap" },
-  { id: "10767", name: "Talk" },
-  { id: "10768", name: "War & Politics" },
-  { id: "37", name: "Western" },
+  { id: 10759, name: "Action & Adventure" },
+  { id: 16, name: "Animation" },
+  { id: 35, name: "Comedy" },
+  { id: 80, name: "Crime" },
+  { id: 99, name: "Documentary" },
+  { id: 18, name: "Drama" },
+  { id: 10751, name: "Family" },
+  { id: 10762, name: "Kids" },
+  { id: 9648, name: "Mystery" },
+  { id: 10763, name: "News" },
+  { id: 10764, name: "Reality" },
+  { id: 10765, name: "Sci-Fi & Fantasy" },
+  { id: 10766, name: "Soap" },
+  { id: 10767, name: "Talk" },
+  { id: 10768, name: "War & Politics" },
+  { id: 37, name: "Western" },
 ];
 
 const SORT_OPTIONS = [
@@ -78,7 +76,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
     setLocalFilters(filters);
   }, [filters]);
 
-  const handleGenreToggle = (genreId: string) => {
+  const handleGenreToggle = (genreId: number) => {
     const newGenres = localFilters.genres.includes(genreId)
       ? localFilters.genres.filter((g) => g !== genreId)
       : [...localFilters.genres, genreId];

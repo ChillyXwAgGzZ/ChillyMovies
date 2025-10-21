@@ -21,20 +21,25 @@ const MoviesView: React.FC = () => {
   const [filters, setFilters] = useState<FilterState>(() => {
     try {
       const saved = localStorage.getItem(FILTERS_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : {
-        genres: [],
-        yearRange: [1900, new Date().getFullYear()] as [number, number],
-        minRating: 0,
-        sortBy: "popularity" as const,
-      };
-    } catch {
-      return {
-        genres: [],
-        yearRange: [1900, new Date().getFullYear()] as [number, number],
-        minRating: 0,
-        sortBy: "popularity" as const,
-      };
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Validate that genres are numbers
+        if (parsed.genres && Array.isArray(parsed.genres)) {
+          parsed.genres = parsed.genres.filter((g: any) => typeof g === 'number');
+        }
+        return parsed;
+      }
+    } catch (err) {
+      console.warn("Failed to parse saved filters, using defaults", err);
+      localStorage.removeItem(FILTERS_STORAGE_KEY);
     }
+    
+    return {
+      genres: [],
+      yearRange: [1900, new Date().getFullYear()] as [number, number],
+      minRating: 0,
+      sortBy: "popularity" as const,
+    };
   });
   
   const observerTarget = useRef<HTMLDivElement>(null);
@@ -45,9 +50,34 @@ const MoviesView: React.FC = () => {
     localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(filters));
   }, [filters]);
 
-  // Apply filters and sorting to movies
+    // Apply filters and sorting to movies
   const filteredAndSortedMovies = useCallback(() => {
     let result = [...movies];
+
+    console.log("Filtering movies:", {
+      totalMovies: result.length,
+      selectedGenres: filters.genres,
+      selectedGenreTypes: filters.genres.map(g => typeof g),
+      sampleMovies: result.slice(0, 3).map(m => ({
+        title: m.title,
+        genreIds: m.genreIds,
+        genreIdTypes: m.genreIds?.map(g => typeof g)
+      }))
+    });
+
+    // Filter by genres
+    if (filters.genres.length > 0) {
+      result = result.filter((movie) => {
+        if (!movie.genreIds || movie.genreIds.length === 0) {
+          return false;
+        }
+        // Movie must have at least one of the selected genres
+        return filters.genres.some(selectedGenre => 
+          movie.genreIds!.includes(selectedGenre)
+        );
+      });
+      console.log("After genre filter:", result.length, "movies");
+    }
 
     // Filter by rating
     if (filters.minRating > 0) {
@@ -118,6 +148,13 @@ const MoviesView: React.FC = () => {
       setError(null);
 
       const newMovies = await metadataApi.getPopular("movie", pageNum);
+      
+      // Debug: Check if genreIds are present
+      console.log("Fetched movies sample:", newMovies.slice(0, 2).map(m => ({
+        title: m.title,
+        genreIds: m.genreIds,
+        year: m.year
+      })));
       
       if (newMovies.length === 0 || newMovies.length < MOVIES_PER_PAGE) {
         setHasMore(false);

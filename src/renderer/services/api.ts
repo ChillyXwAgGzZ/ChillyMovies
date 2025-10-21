@@ -28,6 +28,7 @@ export interface MediaMetadata {
   voteAverage?: number;
   releaseDate?: string;
   mediaType?: "movie" | "tv";
+  genreIds?: number[]; // TMDB genre IDs
 }
 
 export interface TrailerInfo {
