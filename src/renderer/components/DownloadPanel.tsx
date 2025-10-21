@@ -374,7 +374,7 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
                       ) : (
                         <>
                           <Download className="mr-2 h-5 w-5" />
-                          {t("download.start") || "Start Download"}
+                          {t("download.start") || "Download"}
                         </>
                       )}
                     </button>

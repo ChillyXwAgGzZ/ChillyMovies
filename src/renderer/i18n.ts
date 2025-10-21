@@ -111,7 +111,7 @@ const resources = {
       "downloads.actions.cancelError": "Failed to cancel download",
 
       // Download actions
-      "download.start": "Start",
+      "download.start": "Download",
       "download.pause": "Pause",
       "download.resume": "Resume",
       "download.cancel": "Cancel",
@@ -308,7 +308,7 @@ const resources = {
       "downloads.actions.cancelError": "Imeshindwa kughairi upakuaji",
 
       // Download actions
-      "download.start": "Anza",
+      "download.start": "Pakua",
       "download.pause": "Sitisha",
       "download.resume": "Endelea",
       "download.cancel": "Ghairi",
