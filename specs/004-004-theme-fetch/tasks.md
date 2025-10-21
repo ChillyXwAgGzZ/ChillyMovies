@@ -102,19 +102,19 @@ description: "Task list for Theme Propagation, Fetch Fixes & UI Polish"
 
 ### Tests for User Story 3 (accessibility tests)
 
-- [ ] T026 [P] [US3] Create `tests/accessibility/sidebar-navigation.test.ts`: Playwright test for keyboard navigation (Tab through sidebar items, Enter to activate)
-- [ ] T027 [P] [US3] Create `tests/accessibility/sidebar-contrast.test.ts`: axe-core audit for sidebar contrast ratios in light and dark themes
+- [x] T030 [P] [US3] Create `tests/accessibility/sidebar-navigation.test.ts`: Playwright test for keyboard navigation (Tab through sidebar items, Enter to activate)
+- [x] T031 [P] [US3] Create `tests/accessibility/sidebar-contrast.test.ts`: axe-core audit for sidebar contrast ratios in light and dark themes
 
 ### Implementation for User Story 3
 
-- [ ] T028 [US3] Refactor `src/renderer/components/Sidebar.tsx` layout: improve spacing (consistent padding, margins between items)
-- [ ] T029 [US3] Refactor Sidebar colors: use theme-aware variables, ensure active item is clearly highlighted
-- [ ] T030 [US3] Add hover states to Sidebar items: background color change on hover, smooth transition
-- [ ] T031 [US3] Implement keyboard focus indicators: visible focus ring on Tab navigation, support Enter key activation
-- [ ] T032 [US3] Add ARIA labels to Sidebar navigation items (`aria-label` or `aria-labelledby`, `role="navigation"`)
-- [ ] T033 [US3] Test active route highlighting: navigate to different pages, verify current page is highlighted in Sidebar
-- [ ] T034 [US3] Run axe-core audit on Sidebar, fix any contrast or accessibility issues
-- [ ] T035 [US3] Test responsive behavior: resize window to mobile width, verify Sidebar adapts (or plan hamburger menu if needed)
+- [x] T032 [US3] Refactor `src/renderer/components/Sidebar.tsx` layout: improve spacing (consistent padding, margins between items, wider sidebar)
+- [x] T033 [US3] Refactor Sidebar colors: use gradient backgrounds, theme-aware variables, ensure active item is clearly highlighted
+- [x] T034 [US3] Add hover states to Sidebar items: gradient background on hover, smooth transitions, scale transforms
+- [x] T035 [US3] Implement keyboard focus indicators: visible focus rings on Tab navigation, support Enter/Space key activation
+- [x] T036 [US3] Add ARIA labels to Sidebar navigation items: role="navigation", aria-label, aria-expanded attributes
+- [ ] T037 [US3] Test active route highlighting: navigate to different pages, verify current page is highlighted in Sidebar
+- [ ] T038 [US3] Run axe-core audit on Sidebar, fix any contrast or accessibility issues
+- [ ] T039 [US3] Test responsive behavior: resize window to mobile width, verify Sidebar adapts
 
 **Checkpoint**: Sidebar is accessible, visually polished, and responsive
 

@@ -32,6 +32,23 @@ const Sidebar: React.FC = () => {
     saveSettings({ language: newLanguage });
   };
 
+  const handleKeyboardToggle = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      toggleSidebar();
+    }
+  };
+
+  const handleLanguageToggleKeyboard = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      const nextLang = language === 'en' ? 'sw' : 'en';
+      setLanguage(nextLang);
+      i18n.changeLanguage(nextLang);
+      saveSettings({ language: nextLang });
+    }
+  };
+
   const navItems = React.useMemo(
     () => [
       { to: "/", icon: Home, label: t("nav.home") },
@@ -50,12 +67,18 @@ const Sidebar: React.FC = () => {
     }`;
 
   return (
-    <aside className={`${isCollapsed ? 'w-20' : 'w-72'} bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-r border-gray-200/50 dark:border-gray-800/50 p-5 flex flex-col transition-all duration-300 relative shadow-xl`}>
+    <aside 
+      className={`${isCollapsed ? 'w-20' : 'w-72'} bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-r border-gray-200/50 dark:border-gray-800/50 p-5 flex flex-col transition-all duration-300 relative shadow-xl`}
+      role="navigation"
+      aria-label={t("sidebar.mainNavigation") || "Main navigation"}
+    >
       {/* Toggle Button */}
       <button
         onClick={toggleSidebar}
+        onKeyDown={handleKeyboardToggle}
         className="absolute -right-3 top-8 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 text-white rounded-full p-2 shadow-lg shadow-indigo-500/30 transition-all duration-200 hover:scale-110 z-10 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
         aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        aria-expanded={!isCollapsed}
       >
         {isCollapsed ? (
           <ChevronRight className="h-4 w-4" />
@@ -81,13 +104,15 @@ const Sidebar: React.FC = () => {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1.5">
+      <nav className="flex-1 space-y-1.5" role="navigation" aria-label={t("sidebar.primaryNavigation") || "Primary navigation"}>
         {navItems.map(({ to, icon: Icon, label }) => (
           <NavLink 
             key={to} 
             to={to} 
             className={navLinkClasses}
             title={isCollapsed ? label : undefined}
+            aria-label={label}
+            tabIndex={0}
           >
             <div className={`flex items-center justify-center ${isCollapsed ? 'w-full' : ''}`}>
               <Icon className="h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" aria-hidden="true" />
@@ -141,9 +166,10 @@ const Sidebar: React.FC = () => {
               i18n.changeLanguage(nextLang);
               saveSettings({ language: nextLang });
             }}
+            onKeyDown={handleLanguageToggleKeyboard}
             className="w-full p-3 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
             title={t("sidebar.languageLabel")}
-            aria-label={t("sidebar.languageLabel")}
+            aria-label={`${t("sidebar.languageLabel")}: ${language === 'en' ? t("languages.english") : t("languages.swahili")}`}
           >
             <Globe className="h-5 w-5 mx-auto transition-transform duration-200 hover:rotate-12" />
           </button>
