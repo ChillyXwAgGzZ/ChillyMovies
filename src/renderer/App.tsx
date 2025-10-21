@@ -11,6 +11,7 @@ import TVDetailView from "./views/TVDetailView";
 import { metadataApi, debounce, type MediaMetadata } from "./services/api";
 import { ToastProvider } from "./components/Toast";
 import { ThemeProvider } from "./context/ThemeContext";
+import { SidebarProvider } from "./context/SidebarContext";
 
 function AppContent() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -83,11 +84,11 @@ function AppContent() {
   );
 
   return (
-    <div className="flex h-screen bg-gray-900 text-white">
+    <div className="flex h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header searchQuery={searchQuery} onSearch={handleSearch} />
-        <main className="flex-1 overflow-y-auto p-8">
+        <main className="flex-1 overflow-y-auto p-8 bg-gray-50 dark:bg-gray-900">
           <Routes>
             <Route 
               path="/" 
@@ -115,11 +116,13 @@ function AppContent() {
 function App() {
   return (
     <ThemeProvider>
-      <ToastProvider>
-        <Router>
-          <AppContent />
-        </Router>
-      </ToastProvider>
+      <SidebarProvider>
+        <ToastProvider>
+          <Router>
+            <AppContent />
+          </Router>
+        </ToastProvider>
+      </SidebarProvider>
     </ThemeProvider>
   );
 }
