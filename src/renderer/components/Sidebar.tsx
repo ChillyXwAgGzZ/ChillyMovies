@@ -72,21 +72,6 @@ const Sidebar: React.FC = () => {
       role="navigation"
       aria-label={t("sidebar.mainNavigation") || "Main navigation"}
     >
-      {/* Toggle Button */}
-      <button
-        onClick={toggleSidebar}
-        onKeyDown={handleKeyboardToggle}
-        className="absolute -right-3 top-8 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 text-white rounded-full p-2 shadow-lg shadow-indigo-500/30 transition-all duration-200 hover:scale-110 z-10 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
-        aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-        aria-expanded={!isCollapsed}
-      >
-        {isCollapsed ? (
-          <ChevronRight className="h-4 w-4" />
-        ) : (
-          <ChevronLeft className="h-4 w-4" />
-        )}
-      </button>
-
       {/* Logo and Title */}
       <div className={`flex items-center gap-3 mb-8 ${isCollapsed ? 'justify-center' : ''}`}>
         <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 via-indigo-500 to-purple-600 text-white font-bold flex-shrink-0 shadow-lg shadow-indigo-500/30">
@@ -153,12 +138,25 @@ const Sidebar: React.FC = () => {
               </div>
             </label>
           </div>
+          
+          {/* Toggle Button - Expanded Mode */}
+          <button
+            onClick={toggleSidebar}
+            onKeyDown={handleKeyboardToggle}
+            className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800/70 dark:to-gray-800/50 hover:from-indigo-50 hover:to-indigo-100/50 dark:hover:from-indigo-900/20 dark:hover:to-indigo-800/20 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-xl transition-all duration-200 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 border border-gray-200/50 dark:border-gray-700/50"
+            aria-label="Collapse sidebar"
+            aria-expanded={!isCollapsed}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            <span className="text-sm font-medium">{t("sidebar.collapse") || "Collapse"}</span>
+          </button>
         </div>
       )}
       
-      {/* Collapsed Language Toggle */}
+      {/* Collapsed Mode - Language + Toggle */}
       {isCollapsed && (
-        <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-800">
+        <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-800 space-y-2">
+          {/* Language Toggle Button */}
           <button
             onClick={() => {
               const nextLang = language === 'en' ? 'sw' : 'en';
@@ -172,6 +170,17 @@ const Sidebar: React.FC = () => {
             aria-label={`${t("sidebar.languageLabel")}: ${language === 'en' ? t("languages.english") : t("languages.swahili")}`}
           >
             <Globe className="h-5 w-5 mx-auto transition-transform duration-200 hover:rotate-12" />
+          </button>
+          
+          {/* Toggle Button - Collapsed Mode */}
+          <button
+            onClick={toggleSidebar}
+            onKeyDown={handleKeyboardToggle}
+            className="w-full p-3 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 text-white rounded-xl transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 shadow-lg shadow-indigo-500/30"
+            aria-label="Expand sidebar"
+            aria-expanded={!isCollapsed}
+          >
+            <ChevronRight className="h-4 w-4 mx-auto" />
           </button>
         </div>
       )}
