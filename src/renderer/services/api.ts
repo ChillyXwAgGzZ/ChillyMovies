@@ -3,7 +3,12 @@
  * Provides typed wrappers for all backend endpoints with error handling and retry logic
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+// In development with Vite proxy, use relative URLs
+// In Electron production, use the backend port from IPC
+const isDevelopment = import.meta.env.DEV;
+const API_BASE_URL = isDevelopment 
+  ? "" // Use Vite proxy in development
+  : import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
 // Response types matching backend ApiResponse interface
 export interface ApiResponse<T = any> {

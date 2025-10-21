@@ -16,6 +16,29 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    proxy: {
+      '/metadata': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+      '/download': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+      '/library': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+      '/torrents': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+      '/events': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        ws: true, // Enable WebSocket proxy for SSE
+      },
+    },
   },
   resolve: {
     alias: {
