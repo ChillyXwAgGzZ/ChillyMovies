@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Play, Star } from "lucide-react";
-import { metadataApi, type MediaMetadata } from "../services/api";
+import { ArrowLeft, Play, Star, RefreshCw } from "lucide-react";
+import { metadataApi, type MediaMetadata, ApiError } from "../services/api";
 import DownloadPanel from "../components/DownloadPanel";
 
 const MovieDetailView: React.FC = () => {
@@ -12,26 +12,35 @@ const MovieDetailView: React.FC = () => {
   
   const [movie, setMovie] = useState<MediaMetadata | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ApiError | null>(null);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
 
-  useEffect(() => {
-    const fetchMovieDetails = async () => {
-      if (!id) return;
-      
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await metadataApi.getDetails(parseInt(id), "movie");
-        setMovie(data);
-      } catch (err) {
-        console.error("Failed to fetch movie details:", err);
-        setError(err instanceof Error ? err.message : "Failed to load movie details");
-      } finally {
-        setLoading(false);
+  const fetchMovieDetails = async () => {
+    if (!id) return;
+    
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await metadataApi.getDetails(parseInt(id), "movie");
+      setMovie(data);
+    } catch (err) {
+      console.error("Failed to fetch movie details:", err);
+      if (err instanceof ApiError) {
+        setError(err);
+      } else {
+        setError(new ApiError(
+          err instanceof Error ? err.message : "Failed to load movie details",
+          undefined,
+          undefined,
+          false
+        ));
       }
-    };
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchMovieDetails();
   }, [id]);
 
@@ -74,13 +83,31 @@ const MovieDetailView: React.FC = () => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
         <div className="bg-red-900/20 border border-red-700 rounded-lg p-8 max-w-md text-center">
-          <p className="text-red-400 mb-4">{error || "Movie not found"}</p>
-          <button
-            onClick={() => navigate("/")}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg transition"
-          >
-            {t("common.goBack") || "Go Back"}
-          </button>
+          <p className="text-red-400 mb-2 font-semibold">
+            {error ? error.getUserMessage() : "Movie not found"}
+          </p>
+          {error && error.errorType !== 'not-found' && (
+            <p className="text-gray-400 text-sm mb-4">
+              {error.message}
+            </p>
+          )}
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={() => navigate("/")}
+              className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition"
+            >
+              {t("common.backToHome") || "Back to Home"}
+            </button>
+            {error && error.isRetryable && (
+              <button
+                onClick={() => fetchMovieDetails()}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg transition flex items-center gap-2"
+              >
+                <RefreshCw size={16} />
+                {t("common.retry") || "Retry"}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );

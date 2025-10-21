@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Play, Star, Download } from "lucide-react";
-import { metadataApi, type MediaMetadata, type TVSeason } from "../services/api";
+import { ArrowLeft, Play, Star, Download, RefreshCw } from "lucide-react";
+import { metadataApi, type MediaMetadata, type TVSeason, ApiError } from "../services/api";
 import DownloadPanel from "../components/DownloadPanel";
 import EpisodeSelector from "../components/EpisodeSelector";
 
@@ -14,34 +14,43 @@ const TVDetailView: React.FC = () => {
   const [series, setSeries] = useState<MediaMetadata | null>(null);
   const [seasons, setSeasons] = useState<TVSeason[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ApiError | null>(null);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
   const [showEpisodeSelector, setShowEpisodeSelector] = useState(false);
 
-  useEffect(() => {
-    const fetchSeriesDetails = async () => {
-      if (!id) return;
+  const fetchSeriesDetails = async () => {
+    if (!id) return;
+    
+    try {
+      setLoading(true);
+      setError(null);
       
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // Fetch series details and seasons in parallel
-        const [seriesData, seasonsData] = await Promise.all([
-          metadataApi.getDetails(parseInt(id), "tv"),
-          metadataApi.getTVSeasons(parseInt(id)),
-        ]);
-        
-        setSeries(seriesData);
-        setSeasons(seasonsData);
-      } catch (err) {
-        console.error("Failed to fetch series details:", err);
-        setError(err instanceof Error ? err.message : "Failed to load series details");
-      } finally {
-        setLoading(false);
+      // Fetch series details and seasons in parallel
+      const [seriesData, seasonsData] = await Promise.all([
+        metadataApi.getDetails(parseInt(id), "tv"),
+        metadataApi.getTVSeasons(parseInt(id)),
+      ]);
+      
+      setSeries(seriesData);
+      setSeasons(seasonsData);
+    } catch (err) {
+      console.error("Failed to fetch series details:", err);
+      if (err instanceof ApiError) {
+        setError(err);
+      } else {
+        setError(new ApiError(
+          err instanceof Error ? err.message : "Failed to load series details",
+          undefined,
+          undefined,
+          false
+        ));
       }
-    };
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchSeriesDetails();
   }, [id]);
 
@@ -84,13 +93,31 @@ const TVDetailView: React.FC = () => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
         <div className="bg-red-900/20 border border-red-700 rounded-lg p-8 max-w-md text-center">
-          <p className="text-red-400 mb-4">{error || "Series not found"}</p>
-          <button
-            onClick={() => navigate("/")}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg transition"
-          >
-            {t("common.goBack") || "Go Back"}
-          </button>
+          <p className="text-red-400 mb-2 font-semibold">
+            {error ? error.getUserMessage() : "Series not found"}
+          </p>
+          {error && error.errorType !== 'not-found' && (
+            <p className="text-gray-400 text-sm mb-4">
+              {error.message}
+            </p>
+          )}
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={() => navigate("/")}
+              className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition"
+            >
+              {t("common.backToHome") || "Back to Home"}
+            </button>
+            {error && error.isRetryable && (
+              <button
+                onClick={() => fetchSeriesDetails()}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg transition flex items-center gap-2"
+              >
+                <RefreshCw size={16} />
+                {t("common.retry") || "Retry"}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );
