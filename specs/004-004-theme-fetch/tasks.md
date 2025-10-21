@@ -20,7 +20,7 @@ description: "Task list for Theme Propagation, Fetch Fixes & UI Polish"
 
 **Purpose**: Project setup and investigation
 
-- [ ] T001 [P] Run theme audit: grep all src/renderer files for hardcoded dark styles (`bg-gray-800`, `text-white`, etc.)
+- [x] T001 [P] Run theme audit: grep all src/renderer files for hardcoded dark styles (`bg-gray-800`, `text-white`, etc.)
 - [ ] T002 [P] Reproduce movie/TV detail page fetch errors: navigate to `/movie/550` and `/tv/1396`, capture network logs
 - [ ] T003 [P] Analyze current sidebar code in `src/renderer/components/Sidebar.tsx` for UX issues
 
@@ -34,7 +34,7 @@ description: "Task list for Theme Propagation, Fetch Fixes & UI Polish"
 
 **⚠️ CRITICAL**: Theme propagation work blocks all visual polish tasks
 
-- [ ] T004 Verify ThemeContext is working: test theme persistence in localStorage, check if `actualTheme` updates correctly
+- [x] T004 Verify ThemeContext is working: test theme persistence in localStorage, check if `actualTheme` updates correctly
 - [ ] T005 Investigate TMDB API integration in `src/renderer/services/api.ts`: check endpoint construction, error handling, CORS setup
 - [ ] T006 Fix TMDB API calls in `metadataApi.getDetails()` if root cause is backend (endpoint mismatch, missing API key, etc.)
 
@@ -50,17 +50,20 @@ description: "Task list for Theme Propagation, Fetch Fixes & UI Polish"
 
 ### Implementation for User Story 1
 
-- [ ] T007 [P] [US1] Refactor `src/renderer/views/SettingsView.tsx`: replace hardcoded `bg-gray-800`, `text-white` with theme-aware classes (`bg-white dark:bg-gray-800`, `text-gray-900 dark:text-white`)
-- [ ] T008 [P] [US1] Refactor `src/renderer/components/Header.tsx`: audit and replace any hardcoded dark styles with theme-aware classes
-- [ ] T009 [P] [US1] Refactor `src/renderer/components/Sidebar.tsx`: replace hardcoded dark styles with theme-aware classes (will be further refined in US3)
-- [ ] T010 [P] [US1] Refactor `src/renderer/components/DownloadPanel.tsx`: audit and fix theme propagation
-- [ ] T011 [P] [US1] Refactor `src/renderer/components/EpisodeSelector.tsx`: modal background, text, form controls must respect theme
-- [ ] T012 [P] [US1] Refactor `src/renderer/components/Toast.tsx`: audit toast component for theme-aware styles
-- [ ] T013 [P] [US1] Refactor `src/renderer/views/HomeView.tsx`: audit and fix any hardcoded dark styles
-- [ ] T014 [P] [US1] Refactor `src/renderer/views/LibraryView.tsx`: audit and fix theme propagation
-- [ ] T015 [P] [US1] Refactor `src/renderer/views/DownloadsView.tsx`: audit and fix theme propagation
-- [ ] T016 [US1] Manual test: toggle theme to light, visit all pages, verify no dark backgrounds leak through
-- [ ] T017 [US1] Test theme persistence: set light theme, close app, reopen, verify light theme is restored
+- [x] T007 [P] [US1] Refactor `src/renderer/views/SettingsView.tsx`: replace hardcoded `bg-gray-800`, `text-white` with theme-aware classes (`bg-white dark:bg-gray-800`, `text-gray-900 dark:text-white`)
+- [x] T008 [P] [US1] Refactor `src/renderer/components/Header.tsx`: audit and replace any hardcoded dark styles with theme-aware classes
+- [x] T009 [P] [US1] Refactor `src/renderer/components/Sidebar.tsx`: replace hardcoded dark styles with theme-aware classes (will be further refined in US3)
+- [x] T010 [P] [US1] Refactor `src/renderer/components/DownloadPanel.tsx`: audit and fix theme propagation
+- [x] T011 [P] [US1] Refactor `src/renderer/components/EpisodeSelector.tsx`: modal background, text, form controls must respect theme
+- [x] T012 [P] [US1] Refactor `src/renderer/components/Toast.tsx`: audit toast component for theme-aware styles
+- [x] T013 [P] [US1] Refactor `src/renderer/views/HomeView.tsx`: audit and fix any hardcoded dark styles
+- [x] T014 [P] [US1] Refactor `src/renderer/views/LibraryView.tsx`: audit and fix theme propagation
+- [x] T015 [P] [US1] Refactor `src/renderer/views/DownloadsView.tsx`: audit and fix theme propagation
+- [x] T016 [P] [US1] Refactor `src/renderer/views/MovieDetailView.tsx`: fix back button hover colors
+- [x] T017 [P] [US1] Refactor `src/renderer/views/TVDetailView.tsx`: fix back button hover colors
+- [x] T018 [P] [US1] Refactor `src/renderer/components/MovieCard.tsx`: make card background, title, year, and rating theme-aware
+- [ ] T019 [US1] Manual test: toggle theme to light, visit all pages, verify no dark backgrounds leak through
+- [ ] T020 [US1] Test theme persistence: set light theme, close app, reopen, verify light theme is restored
 
 **Checkpoint**: Theme propagates correctly to all UI elements, persists across sessions
 
@@ -74,8 +77,8 @@ description: "Task list for Theme Propagation, Fetch Fixes & UI Polish"
 
 ### Tests for User Story 2 (integration tests)
 
-- [ ] T018 [P] [US2] Create `tests/integration/movie-detail.test.ts`: test fetching movie details from TMDB API, verify response structure
-- [ ] T019 [P] [US2] Create `tests/integration/tv-detail.test.ts`: test fetching TV show details and seasons from TMDB API, verify response structure
+- [ ] T021 [P] [US2] Create `tests/integration/movie-detail.test.ts`: test fetching movie details from TMDB API, verify response structure
+- [ ] T022 [P] [US2] Create `tests/integration/tv-detail.test.ts`: test fetching TV show details and seasons from TMDB API, verify response structure
 
 ### Implementation for User Story 2
 
