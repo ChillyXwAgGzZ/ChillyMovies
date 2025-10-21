@@ -86,8 +86,9 @@ description: "Task list for Theme Propagation, Fetch Fixes & UI Polish"
 - [x] T024 [US2] Fix `src/renderer/views/TVDetailView.tsx`: ensure `metadataApi.getDetails(id, "tv")` and `metadataApi.getTVSeasons(id)` handle errors gracefully
 - [x] T025 [US2] Add retry logic in `src/renderer/services/api.ts` with exponential backoff (max 3 retries, 1s initial delay, 10s max delay)
 - [x] T026 [US2] Improve error messages: distinguish between network errors, rate limits, 404s, server errors, and client errors with user-friendly messages
-- [ ] T027 [US2] Test with known TMDB IDs: movie/550, tv/1396, verify data loads, posters/backdrops display, ratings show correctly
-- [ ] T028 [US2] Test error handling: simulate network failure, verify error message and retry button work
+- [x] T027 [US2] Fix CORS/proxy issues: add Vite proxy configuration to enable frontend-backend communication in development
+- [x] T028 [US2] Test with known TMDB IDs: movie/550, tv/1396, verify data loads, posters/backdrops display, ratings show correctly
+- [ ] T029 [US2] Test error handling: simulate network failure, verify error message and retry button work
 
 **Checkpoint**: Movie and TV detail pages load reliably, with proper loading/error UX
 
