@@ -34,6 +34,8 @@ const resources = {
 
       // Navigation
       "nav.home": "Home",
+      "nav.movies": "Movies",
+      "nav.tvSeries": "TV Series",
       "nav.discovery": "Discovery",
       "nav.library": "Library",
       "nav.downloads": "Downloads",
@@ -231,6 +233,8 @@ const resources = {
 
       // Navigation
       "nav.home": "Nyumbani",
+      "nav.movies": "Filamu",
+      "nav.tvSeries": "Vipindi vya Runinga",
       "nav.discovery": "Gundua",
       "nav.library": "Maktaba",
       "nav.downloads": "Upakuaji",

@@ -2,7 +2,7 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Globe, Home, Download, Library, Settings, ChevronLeft, ChevronRight } from "lucide-react";
+import { Globe, Home, Download, Library, Settings, ChevronLeft, ChevronRight, Film, Tv } from "lucide-react";
 import { saveSettings, loadSettings } from "../settings";
 import { useSidebar } from "../context/SidebarContext";
 
@@ -52,6 +52,8 @@ const Sidebar: React.FC = () => {
   const navItems = React.useMemo(
     () => [
       { to: "/", icon: Home, label: t("nav.home") },
+      { to: "/movies", icon: Film, label: t("nav.movies") },
+      { to: "/tv-series", icon: Tv, label: t("nav.tvSeries") },
       { to: "/downloads", icon: Download, label: t("nav.downloads") },
       { to: "/library", icon: Library, label: t("nav.library") },
       { to: "/settings", icon: Settings, label: t("nav.settings") },
