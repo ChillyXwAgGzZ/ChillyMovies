@@ -172,7 +172,7 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
             searchTorrents(selectedQuality);
           }
         }}
-        className="flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-semibold transition shadow-lg"
+        className="flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 rounded-xl font-semibold transition-all duration-200 shadow-lg shadow-indigo-500/30 hover:scale-[1.02]"
       >
         <Download className="mr-2 h-5 w-5" />
         {t("download.button") || "Download"}
@@ -180,17 +180,17 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
 
       {/* Download Panel Modal */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col animate-slide-up">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md animate-fade-in">
+          <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col animate-slide-up border border-gray-200/50 dark:border-gray-700/50">
             {/* Header */}
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-gradient-to-r from-gray-50/50 to-transparent dark:from-gray-800/50">
               <div>
-                <h2 className="text-2xl font-bold mb-1 text-gray-900 dark:text-white">{t("download.selectQuality") || "Select Download Quality"}</h2>
+                <h2 className="text-2xl font-bold mb-1 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">{t("download.selectQuality") || "Select Download Quality"}</h2>
                 <p className="text-gray-600 dark:text-gray-400 text-sm">{title}</p>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all hover:scale-110"
               >
                 <X className="h-6 w-6 text-gray-600 dark:text-gray-400" />
               </button>
@@ -209,11 +209,11 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
                       key={quality}
                       onClick={() => handleQualityChange(quality)}
                       disabled={loading}
-                      className={`px-4 py-3 rounded-lg font-semibold transition ${
+                      className={`px-4 py-3 rounded-xl font-semibold transition-all duration-200 ${
                         selectedQuality === quality
-                          ? "bg-indigo-600 text-white"
-                          : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                          ? "bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-lg shadow-indigo-500/30 scale-105"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 hover:scale-[1.02]"
+                      } disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100`}
                     >
                       {quality}
                     </button>
@@ -271,10 +271,10 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
                   {torrents.map((torrent, index) => (
                     <div
                       key={torrent.id}
-                      className={`relative p-4 rounded-lg border-2 transition-all cursor-pointer ${
+                      className={`relative p-4 rounded-xl border-2 transition-all cursor-pointer ${
                         selectedTorrent?.id === torrent.id
-                          ? "border-indigo-500 bg-indigo-100 dark:bg-indigo-900/30 shadow-lg shadow-indigo-500/20"
-                          : "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/30 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700/50"
+                          ? "border-indigo-500 bg-gradient-to-br from-indigo-50 to-indigo-100/50 dark:from-indigo-900/30 dark:to-indigo-900/20 shadow-lg shadow-indigo-500/20 scale-[1.02]"
+                          : "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/30 hover:border-indigo-300 dark:hover:border-indigo-600 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:scale-[1.01]"
                       }`}
                       onClick={() => setSelectedTorrent(torrent)}
                     >
@@ -343,7 +343,7 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
 
             {/* Footer */}
             {torrents.length > 0 && !loading && (
-              <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+              <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gradient-to-br from-gray-50 to-gray-100/50 dark:from-gray-800/50 dark:to-gray-800/30">
                 <div className="flex items-center justify-between">
                   <div className="text-sm text-gray-600 dark:text-gray-400">
                     {selectedTorrent && (
@@ -357,14 +357,14 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
                   <div className="flex gap-3">
                     <button
                       onClick={() => setIsOpen(false)}
-                      className="px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg font-semibold transition"
+                      className="px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-xl font-semibold transition-all hover:scale-[1.02]"
                     >
                       {t("common.cancel") || "Cancel"}
                     </button>
                     <button
                       onClick={handleDownload}
                       disabled={!selectedTorrent || downloading}
-                      className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition flex items-center"
+                      className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 disabled:from-gray-400 disabled:to-gray-400 dark:disabled:from-gray-600 dark:disabled:to-gray-600 disabled:cursor-not-allowed text-white rounded-xl font-semibold transition-all flex items-center shadow-lg shadow-indigo-500/30 hover:scale-[1.02] disabled:hover:scale-100 disabled:shadow-none"
                     >
                       {downloading ? (
                         <>

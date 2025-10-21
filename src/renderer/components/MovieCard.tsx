@@ -12,7 +12,7 @@ interface MovieCardProps {
 const MovieCard: React.FC<MovieCardProps> = ({ title, year, poster, rating, onClick }) => {
   return (
     <div 
-      className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-indigo-500/50 transition-shadow duration-300 cursor-pointer transform hover:scale-105 transition-transform border border-gray-200 dark:border-gray-700"
+      className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-xl overflow-hidden shadow-lg hover:shadow-indigo-500/40 transition-all duration-300 cursor-pointer transform hover:scale-105 border border-gray-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-500"
       onClick={onClick}
       role="button"
       tabIndex={0}
@@ -34,11 +34,11 @@ const MovieCard: React.FC<MovieCardProps> = ({ title, year, poster, rating, onCl
         <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate" title={title}>{title}</h3>
         <div className="flex justify-between items-center mt-2">
           <p className="text-sm text-gray-600 dark:text-gray-400">{year}</p>
-          <div className="flex items-center">
-            <svg className="w-4 h-4 text-yellow-400 mr-1" fill="currentColor" viewBox="0 0 20 20">
+          <div className="flex items-center bg-gradient-to-r from-yellow-400 to-yellow-500 px-2 py-1 rounded-full">
+            <svg className="w-4 h-4 text-white mr-1" fill="currentColor" viewBox="0 0 20 20">
               <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
             </svg>
-            <p className="text-sm text-gray-900 dark:text-white">{rating.toFixed(1)}</p>
+            <p className="text-sm text-white font-semibold">{rating.toFixed(1)}</p>
           </div>
         </div>
       </div>

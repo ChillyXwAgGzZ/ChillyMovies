@@ -128,7 +128,7 @@ const TVDetailView: React.FC = () => {
       {/* Back Button */}
       <button
         onClick={() => navigate(-1)}
-        className="mb-6 flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition"
+        className="mb-6 flex items-center text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all hover:scale-105"
       >
         <ArrowLeft className="mr-2 h-5 w-5" />
         {t("common.back") || "Back"}
@@ -194,7 +194,7 @@ const TVDetailView: React.FC = () => {
                 {/* Episode Selector Button for TV Shows */}
                 <button
                   onClick={() => setShowEpisodeSelector(true)}
-                  className="flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-semibold transition"
+                  className="flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 rounded-xl font-semibold transition-all shadow-lg shadow-indigo-500/30 hover:scale-[1.02]"
                 >
                   <Download className="mr-2 h-5 w-5" />
                   {t("tv.selectEpisodes") || "Select Episodes"}
@@ -202,7 +202,7 @@ const TVDetailView: React.FC = () => {
 
                 <button
                   onClick={handleWatchTrailer}
-                  className="flex items-center px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg font-semibold transition"
+                  className="flex items-center px-6 py-3 bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 rounded-xl font-semibold transition-all shadow-md hover:scale-[1.02]"
                 >
                   <Play className="mr-2 h-5 w-5" />
                   {t("discovery.watchTrailer") || "Watch Trailer"}

@@ -118,7 +118,7 @@ const MovieDetailView: React.FC = () => {
       {/* Back Button */}
       <button
         onClick={() => navigate(-1)}
-        className="mb-6 flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition"
+        className="mb-6 flex items-center text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all hover:scale-105"
       >
         <ArrowLeft className="mr-2 h-5 w-5" />
         {t("common.back") || "Back"}
@@ -190,7 +190,7 @@ const MovieDetailView: React.FC = () => {
 
                 <button
                   onClick={handleWatchTrailer}
-                  className="flex items-center px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg font-semibold transition"
+                  className="flex items-center px-6 py-3 bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 rounded-xl font-semibold transition-all shadow-md hover:scale-[1.02]"
                 >
                   <Play className="mr-2 h-5 w-5" />
                   {t("discovery.watchTrailer") || "Watch Trailer"}

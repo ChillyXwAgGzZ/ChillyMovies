@@ -202,19 +202,19 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-6xl mx-4 max-h-[90vh] overflow-hidden flex flex-col animate-slide-up">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md animate-fade-in">
+      <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-2xl w-full max-w-6xl mx-4 max-h-[90vh] overflow-hidden flex flex-col animate-slide-up border border-gray-200/50 dark:border-gray-700/50">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-gradient-to-r from-gray-50/50 to-transparent dark:from-gray-800/50">
           <div>
-            <h2 className="text-2xl font-bold mb-1 text-gray-900 dark:text-white">
+            <h2 className="text-2xl font-bold mb-1 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
               {t("tv.selectEpisodes") || "Select Episodes"}
             </h2>
             <p className="text-gray-600 dark:text-gray-400 text-sm">{title}</p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all hover:scale-110"
           >
             <X className="h-6 w-6 text-gray-600 dark:text-gray-400" />
           </button>
@@ -223,7 +223,7 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
         {/* Content */}
         <div className="flex-1 overflow-hidden flex">
           {/* Seasons Sidebar */}
-          <div className="w-64 border-r border-gray-200 dark:border-gray-700 overflow-y-auto">
+          <div className="w-64 border-r border-gray-200 dark:border-gray-700 overflow-y-auto bg-gradient-to-b from-gray-50/50 to-transparent dark:from-gray-800/30">
             <div className="p-4">
               <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase mb-3">
                 {t("tv.seasons") || "Seasons"}
@@ -233,10 +233,10 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
                   <button
                     key={season.id}
                     onClick={() => handleSeasonChange(season)}
-                    className={`w-full text-left px-4 py-3 rounded-lg transition ${
+                    className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-200 ${
                       selectedSeason?.id === season.id
-                        ? "bg-indigo-600 text-white"
-                        : "bg-gray-100 dark:bg-gray-700/50 text-gray-900 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        ? "bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-lg shadow-indigo-500/30 scale-[1.02]"
+                        : "bg-gray-100 dark:bg-gray-700/50 text-gray-900 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 hover:scale-[1.01]"
                     }`}
                   >
                     <div className="font-semibold">{season.name}</div>
@@ -261,13 +261,13 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
                   <div className="flex gap-2">
                     <button
                       onClick={selectAllEpisodes}
-                      className="px-4 py-2 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg transition"
+                      className="px-4 py-2 text-sm bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 rounded-xl transition-all hover:scale-[1.02] shadow-md"
                     >
                       {t("common.selectAll") || "Select All"}
                     </button>
                     <button
                       onClick={deselectAllEpisodes}
-                      className="px-4 py-2 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg transition"
+                      className="px-4 py-2 text-sm bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 rounded-xl transition-all hover:scale-[1.02] shadow-md"
                     >
                       {t("common.deselectAll") || "Deselect All"}
                     </button>
@@ -285,10 +285,10 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
                       <button
                         key={episode.id}
                         onClick={() => toggleEpisode(episode.episodeNumber)}
-                        className={`text-left p-4 rounded-lg border-2 transition-all ${
+                        className={`text-left p-4 rounded-xl border-2 transition-all duration-200 ${
                           selectedEpisodes.has(episode.episodeNumber)
-                            ? "border-indigo-500 bg-indigo-900/30"
-                            : "border-gray-700 bg-gray-700/30 hover:border-gray-600"
+                            ? "border-indigo-500 bg-gradient-to-br from-indigo-50 to-indigo-100/50 dark:from-indigo-900/30 dark:to-indigo-900/20 shadow-lg shadow-indigo-500/20 scale-[1.01]"
+                            : "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/30 hover:border-indigo-300 dark:hover:border-indigo-600 hover:scale-[1.01]"
                         }`}
                       >
                         <div className="flex items-start gap-3">
@@ -339,7 +339,7 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+        <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gradient-to-br from-gray-50 to-gray-100/50 dark:from-gray-800/50 dark:to-gray-800/30">
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-600 dark:text-gray-400">
               {selectedEpisodes.size > 0 && (
@@ -351,14 +351,14 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
             <div className="flex gap-3">
               <button
                 onClick={onClose}
-                className="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg font-semibold transition"
+                className="px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-xl font-semibold transition-all hover:scale-[1.02]"
               >
                 {t("common.cancel") || "Cancel"}
               </button>
               <button
                 onClick={handleDownload}
                 disabled={selectedEpisodes.size === 0 || downloading}
-                className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg font-semibold transition flex items-center gap-2"
+                className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 disabled:from-gray-400 disabled:to-gray-400 dark:disabled:from-gray-600 dark:disabled:to-gray-600 disabled:cursor-not-allowed rounded-xl font-semibold transition-all flex items-center gap-2 shadow-lg shadow-indigo-500/30 hover:scale-[1.02] disabled:hover:scale-100 disabled:shadow-none"
               >
                 {downloading ? (
                   <>
