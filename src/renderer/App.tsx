@@ -3,6 +3,7 @@ import { HashRouter as Router, Routes, Route, useNavigate, useLocation, useSearc
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 import HomeView from "./views/HomeView";
+import MoviesView from "./views/MoviesView";
 import DownloadsView from "./views/DownloadsView";
 import LibraryView from "./views/LibraryView";
 import SettingsView from "./views/SettingsView";
@@ -101,6 +102,7 @@ function AppContent() {
                 />
               } 
             />
+            <Route path="/movies" element={<MoviesView />} />
             <Route path="/movie/:id" element={<MovieDetailView />} />
             <Route path="/tv/:id" element={<TVDetailView />} />
             <Route path="/downloads" element={<DownloadsView />} />
