@@ -264,48 +264,58 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
                     </label>
                     <div className="text-xs text-gray-500 dark:text-gray-500">
                       {selectedTorrent && (
-                        <span>✨ Smallest size auto-selected</span>
+                        <span>✨ Best option auto-selected • Click to change</span>
                       )}
                     </div>
                   </div>
                   {torrents.map((torrent, index) => (
-                    <div
+                    <label
                       key={torrent.id}
-                      className={`relative p-4 rounded-xl border-2 transition-all cursor-pointer ${
+                      className={`relative p-4 rounded-xl border-2 transition-all cursor-pointer flex items-start gap-3 ${
                         selectedTorrent?.id === torrent.id
                           ? "border-indigo-500 bg-gradient-to-br from-indigo-50 to-indigo-100/50 dark:from-indigo-900/30 dark:to-indigo-900/20 shadow-lg shadow-indigo-500/20 scale-[1.02]"
                           : "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/30 hover:border-indigo-300 dark:hover:border-indigo-600 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:scale-[1.01]"
                       }`}
-                      onClick={() => setSelectedTorrent(torrent)}
                     >
-                      {/* Auto-selected badge */}
-                      {index === 0 && selectedTorrent?.id === torrent.id && (
-                        <div className="absolute -top-2 -left-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
-                          AUTO
-                        </div>
-                      )}
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex-1 pr-4">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-semibold text-gray-900 dark:text-white line-clamp-1">
-                              {torrent.title}
-                            </h4>
-                            {selectedTorrent?.id === torrent.id && (
-                              <span className="flex-shrink-0 px-2 py-0.5 bg-indigo-500 text-white text-xs font-bold rounded-full">
-                                ✓ {t("download.selected") || "Selected"}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-xs text-gray-600 dark:text-gray-400">
-                            {t("download.provider") || "Provider"}: {torrent.provider}
-                          </p>
-                        </div>
-                        <span className="flex-shrink-0 px-3 py-1 bg-indigo-600 text-white text-sm font-semibold rounded-full">
-                          {torrent.quality}
-                        </span>
-                      </div>
+                      {/* Radio Button */}
+                      <input
+                        type="radio"
+                        name="torrent-selection"
+                        checked={selectedTorrent?.id === torrent.id}
+                        onChange={() => setSelectedTorrent(torrent)}
+                        className="mt-1 h-5 w-5 text-indigo-600 border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:ring-2 cursor-pointer"
+                      />
                       
-                      <div className="flex items-center gap-6 text-sm">
+                      <div className="flex-1">
+                        {/* Auto-selected badge */}
+                        {index === 0 && selectedTorrent?.id === torrent.id && (
+                          <div className="inline-flex items-center gap-1 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full font-bold mb-2">
+                            <span>⚡</span>
+                            <span>RECOMMENDED</span>
+                          </div>
+                        )}
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1 pr-4">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-semibold text-gray-900 dark:text-white line-clamp-1">
+                                {torrent.title}
+                              </h4>
+                              {selectedTorrent?.id === torrent.id && (
+                                <span className="flex-shrink-0 px-2 py-0.5 bg-indigo-500 text-white text-xs font-bold rounded-full">
+                                  ✓ {t("download.selected") || "Selected"}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-gray-600 dark:text-gray-400">
+                              {t("download.provider") || "Provider"}: {torrent.provider}
+                            </p>
+                          </div>
+                          <span className="flex-shrink-0 px-3 py-1 bg-indigo-600 text-white text-sm font-semibold rounded-full">
+                            {torrent.quality}
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center gap-6 text-sm">
                         <div className="flex items-center text-green-500 dark:text-green-400">
                           <Users className="h-4 w-4 mr-1" />
                           <span className="font-medium">{torrent.seeders}</span>
@@ -335,7 +345,8 @@ const DownloadPanel: React.FC<DownloadPanelProps> = ({
                           </div>
                         )}
                       </div>
-                    </div>
+                      </div>
+                    </label>
                   ))}
                 </div>
               )}
