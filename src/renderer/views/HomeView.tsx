@@ -81,8 +81,8 @@ const HomeView: React.FC<HomeViewProps> = ({
         )}
 
         {!isSearching && !searchError && searchResults.length === 0 && (
-          <div className="bg-gray-800/50 rounded-lg p-12 text-center">
-            <p className="text-gray-400 text-lg">{t("home.noResults")}</p>
+          <div className="bg-gray-100 dark:bg-gray-800/50 rounded-lg p-12 text-center">
+            <p className="text-gray-600 dark:text-gray-400 text-lg">{t("home.noResults")}</p>
           </div>
         )}
 

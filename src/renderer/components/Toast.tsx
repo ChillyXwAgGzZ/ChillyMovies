@@ -136,11 +136,11 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onClose }) => {
         </div>
         
         <div className="flex-1 min-w-0">
-          <h4 className="font-semibold text-white mb-0.5">
+          <h4 className="font-semibold text-gray-900 dark:text-white mb-0.5">
             {toast.title}
           </h4>
           {toast.message && (
-            <p className="text-sm text-gray-300">
+            <p className="text-sm text-gray-700 dark:text-gray-300">
               {toast.message}
             </p>
           )}
@@ -148,10 +148,10 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onClose }) => {
 
         <button
           onClick={handleClose}
-          className="flex-shrink-0 p-1 hover:bg-white/10 rounded transition-colors"
+          className="flex-shrink-0 p-1 hover:bg-gray-200 dark:hover:bg-white/10 rounded transition-colors"
           aria-label="Close notification"
         >
-          <X className="h-4 w-4 text-gray-400" />
+          <X className="h-4 w-4 text-gray-500 dark:text-gray-400" />
         </button>
       </div>
 

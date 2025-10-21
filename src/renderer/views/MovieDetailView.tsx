@@ -91,7 +91,7 @@ const MovieDetailView: React.FC = () => {
       {/* Back Button */}
       <button
         onClick={() => navigate(-1)}
-        className="mb-6 flex items-center text-gray-400 hover:text-white transition"
+        className="mb-6 flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition"
       >
         <ArrowLeft className="mr-2 h-5 w-5" />
         {t("common.back") || "Back"}

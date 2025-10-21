@@ -289,11 +289,11 @@ const DownloadsView = () => {
   if (downloads.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh]">
-        <DownloadCloud className="h-24 w-24 text-gray-600 mb-4" />
-        <h2 className="text-2xl font-bold text-white mb-2">
+        <DownloadCloud className="h-24 w-24 text-gray-400 dark:text-gray-600 mb-4" />
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
           {t("downloads.emptyStateTitle") || "No downloads yet"}
         </h2>
-        <p className="text-gray-400">
+        <p className="text-gray-600 dark:text-gray-400">
           {t("downloads.emptyStateDescription") || "Start a download from Discover to see progress here."}
         </p>
       </div>
@@ -302,11 +302,11 @@ const DownloadsView = () => {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-white mb-6">{t("downloads.title") || "Downloads"}</h2>
-      <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg shadow-lg border border-gray-700">
-        <ul className="divide-y divide-gray-700">
+      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{t("downloads.title") || "Downloads"}</h2>
+      <div className="bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+        <ul className="divide-y divide-gray-200 dark:divide-gray-700">
           {downloads.map((item) => (
-            <li key={item.id} className="p-6 hover:bg-gray-800/70 transition">
+            <li key={item.id} className="p-6 hover:bg-gray-50 dark:hover:bg-gray-800/70 transition">
               <div className="flex items-start gap-4">
                 {/* Episode Thumbnail or Status Icon */}
                 {item.metadata?.stillPath ? (
@@ -325,9 +325,9 @@ const DownloadsView = () => {
                 {/* Download Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start gap-2 mb-2">
-                    <p className="text-white font-medium truncate flex-1">{item.title}</p>
+                    <p className="text-gray-900 dark:text-white font-medium truncate flex-1">{item.title}</p>
                     {item.metadata?.quality && (
-                      <span className="px-2 py-0.5 bg-indigo-600/20 border border-indigo-600 rounded text-xs font-semibold text-indigo-400">
+                      <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-600/20 border border-indigo-300 dark:border-indigo-600 rounded text-xs font-semibold text-indigo-700 dark:text-indigo-400">
                         {item.metadata.quality}
                       </span>
                     )}
@@ -335,7 +335,7 @@ const DownloadsView = () => {
 
                   {/* Progress Bar */}
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="flex-1 bg-gray-700 rounded-full h-2.5">
+                    <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
                       <div
                         className={`h-2.5 rounded-full transition-all duration-300 ${getStatusColor(item.status)}`}
                         style={{ width: `${item.progress}%` }}
@@ -380,7 +380,7 @@ const DownloadsView = () => {
                   {item.status === "downloading" && (
                     <button
                       onClick={() => handlePause(item.id)}
-                      className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition"
+                      className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition"
                       title={t("downloads.actions.pause") || "Pause"}
                     >
                       <Pause size={18} />
@@ -389,7 +389,7 @@ const DownloadsView = () => {
                   {item.status === "paused" && (
                     <button
                       onClick={() => handleResume(item.id)}
-                      className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition"
+                      className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition"
                       title={t("downloads.actions.resume") || "Resume"}
                     >
                       <Play size={18} />
@@ -398,7 +398,7 @@ const DownloadsView = () => {
                   {item.status !== "completed" && (
                     <button
                       onClick={() => handleCancel(item.id)}
-                      className="p-2 text-gray-400 hover:text-red-400 hover:bg-gray-700 rounded-lg transition"
+                      className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition"
                       title={t("downloads.actions.cancel") || "Cancel"}
                     >
                       <X size={18} />

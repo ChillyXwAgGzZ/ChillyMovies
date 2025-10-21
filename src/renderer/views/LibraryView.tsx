@@ -121,11 +121,11 @@ const LibraryView = () => {
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh]">
-        <FolderOpen className="h-24 w-24 text-gray-600 mb-4" />
-        <h2 className="text-2xl font-bold text-white mb-2">
+        <FolderOpen className="h-24 w-24 text-gray-600 dark:text-gray-400 mb-4" />
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
           {t("library.emptyStateTitle") || "Your library is empty"}
         </h2>
-        <p className="text-gray-400 mb-6 text-center max-w-md">
+        <p className="text-gray-600 dark:text-gray-400 mb-6 text-center max-w-md">
           {t("library.emptyStateDescription") || "Add movies to your library from Discover or import existing files."}
         </p>
         <button
@@ -141,10 +141,10 @@ const LibraryView = () => {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-white">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
           {t("library.title") || "My Library"}
         </h2>
-        <span className="text-gray-400 text-sm">
+        <span className="text-gray-600 dark:text-gray-400 text-sm">
           {items.length} {items.length === 1 ? t("library.item") || "item" : t("library.items") || "items"}
         </span>
       </div>
@@ -153,11 +153,11 @@ const LibraryView = () => {
         {items.map((item) => (
           <div
             key={item.id}
-            className="group relative bg-gray-800/50 backdrop-blur-sm rounded-lg overflow-hidden border border-gray-700 hover:border-indigo-500 transition-all duration-300 transform hover:scale-105"
+            className="group relative bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-indigo-500 dark:hover:border-indigo-500 transition-all duration-300 transform hover:scale-105"
           >
             {/* Poster */}
             <div
-              className="aspect-[2/3] bg-gray-900 cursor-pointer"
+              className="aspect-[2/3] bg-gray-200 dark:bg-gray-900 cursor-pointer"
               onClick={() => handleCardClick(item)}
             >
               {item.metadata?.poster ? (
@@ -181,7 +181,7 @@ const LibraryView = () => {
               <h3 className="text-white font-semibold text-sm mb-1 line-clamp-2">{item.title}</h3>
               
               {item.metadata?.year && (
-                <p className="text-gray-300 text-xs mb-3">{item.metadata.year}</p>
+                <p className="text-gray-200 text-xs mb-3">{item.metadata.year}</p>
               )}
 
               {/* Action Buttons */}
