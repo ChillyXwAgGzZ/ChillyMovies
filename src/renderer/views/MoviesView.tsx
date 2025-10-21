@@ -2,10 +2,12 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import MovieCard from "../components/MovieCard";
+import FilterPanel, { type FilterState } from "../components/FilterPanel";
 import { metadataApi, type MediaMetadata } from "../services/api";
 
 const MOVIES_PER_PAGE = 20;
 const SCROLL_POSITION_KEY = "moviesView_scrollPosition";
+const FILTERS_STORAGE_KEY = "moviesView_filters";
 
 const MoviesView: React.FC = () => {
   const { t } = useTranslation();
@@ -16,9 +18,77 @@ const MoviesView: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [filters, setFilters] = useState<FilterState>(() => {
+    try {
+      const saved = localStorage.getItem(FILTERS_STORAGE_KEY);
+      return saved ? JSON.parse(saved) : {
+        genres: [],
+        yearRange: [1900, new Date().getFullYear()] as [number, number],
+        minRating: 0,
+        sortBy: "popularity" as const,
+      };
+    } catch {
+      return {
+        genres: [],
+        yearRange: [1900, new Date().getFullYear()] as [number, number],
+        minRating: 0,
+        sortBy: "popularity" as const,
+      };
+    }
+  });
   
   const observerTarget = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Save filters to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(filters));
+  }, [filters]);
+
+  // Apply filters and sorting to movies
+  const filteredAndSortedMovies = useCallback(() => {
+    let result = [...movies];
+
+    // Filter by rating
+    if (filters.minRating > 0) {
+      result = result.filter((movie) => (movie.voteAverage || 0) >= filters.minRating);
+    }
+
+    // Filter by year
+    result = result.filter((movie) => {
+      const year = movie.year || new Date(movie.releaseDate || "").getFullYear();
+      return year >= filters.yearRange[0] && year <= filters.yearRange[1];
+    });
+
+    // Sort
+    switch (filters.sortBy) {
+      case "rating":
+        result.sort((a, b) => (b.voteAverage || 0) - (a.voteAverage || 0));
+        break;
+      case "release_date":
+        result.sort((a, b) => {
+          const dateA = new Date(a.releaseDate || 0).getTime();
+          const dateB = new Date(b.releaseDate || 0).getTime();
+          return dateB - dateA;
+        });
+        break;
+      case "title":
+        result.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      case "popularity":
+      default:
+        // Keep original order from API (already sorted by popularity)
+        break;
+    }
+
+    return result;
+  }, [movies, filters]);
+
+  const displayedMovies = filteredAndSortedMovies();
+
+  const handleFiltersChange = (newFilters: FilterState) => {
+    setFilters(newFilters);
+  };
 
   // Restore scroll position on mount
   useEffect(() => {
@@ -118,9 +188,16 @@ const MoviesView: React.FC = () => {
           {t("nav.movies")}
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          {loading ? t("discovery.loading") : `${movies.length} movies`}
+          {loading ? t("discovery.loading") : `${displayedMovies.length} of ${movies.length} movies`}
         </p>
       </div>
+
+      {/* Filter Panel */}
+      <FilterPanel
+        mediaType="movie"
+        filters={filters}
+        onFiltersChange={handleFiltersChange}
+      />
 
       {/* Initial Loading State */}
       {loading && movies.length === 0 && (
@@ -143,10 +220,10 @@ const MoviesView: React.FC = () => {
       )}
 
       {/* Movies Grid */}
-      {!loading && movies.length > 0 && (
+      {!loading && displayedMovies.length > 0 && (
         <>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {movies.map((movie) => (
+            {displayedMovies.map((movie) => (
               <MovieCard
                 key={`movie-${movie.id}`}
                 title={movie.title}
@@ -179,7 +256,27 @@ const MoviesView: React.FC = () => {
         </>
       )}
 
-      {/* Empty State */}
+      {/* Empty State - No results after filtering */}
+      {!loading && movies.length > 0 && displayedMovies.length === 0 && (
+        <div className="bg-gray-100 dark:bg-gray-800/50 rounded-lg p-12 text-center">
+          <p className="text-gray-600 dark:text-gray-400 text-lg mb-2">
+            No movies match your filters
+          </p>
+          <button
+            onClick={() => setFilters({
+              genres: [],
+              yearRange: [1900, new Date().getFullYear()],
+              minRating: 0,
+              sortBy: "popularity",
+            })}
+            className="text-indigo-600 dark:text-indigo-400 hover:underline text-sm"
+          >
+            Reset filters
+          </button>
+        </div>
+      )}
+
+      {/* Empty State - No movies loaded */}
       {!loading && !error && movies.length === 0 && (
         <div className="bg-gray-100 dark:bg-gray-800/50 rounded-lg p-12 text-center">
           <p className="text-gray-600 dark:text-gray-400 text-lg">
