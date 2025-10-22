@@ -6,6 +6,7 @@ import { metadataApi, type MediaMetadata, ApiError } from "../services/api";
 import DownloadPanel from "../components/DownloadPanel";
 import MetadataCard from "../components/MetadataCard";
 import { formatCurrency, formatRuntime } from "../utils/formatting";
+import { getGenreColor } from "../constants/genreColors";
 
 const MovieDetailView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -173,6 +174,20 @@ const MovieDetailView: React.FC = () => {
                   </div>
                 )}
               </div>
+
+              {/* Genre Pills (Phase 3 - T-DETAIL-006) */}
+              {movie.genres && movie.genres.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-6 max-w-3xl overflow-x-auto">
+                  {movie.genres.slice(0, 6).map((genre) => (
+                    <span
+                      key={genre.id}
+                      className={`${getGenreColor(genre.id)} text-white text-sm font-medium px-3 py-1 rounded-full backdrop-blur-sm whitespace-nowrap`}
+                    >
+                      {genre.name}
+                    </span>
+                  ))}
+                </div>
+              )}
 
               {movie.overview && (
                 <p 
