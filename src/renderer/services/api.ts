@@ -29,6 +29,40 @@ export interface MediaMetadata {
   releaseDate?: string;
   mediaType?: "movie" | "tv";
   genreIds?: number[]; // TMDB genre IDs
+  
+  // Extended metadata (Phase 3)
+  runtime?: number; // In minutes
+  status?: string; // "Released", "Returning Series", "Ended", etc.
+  budget?: number; // In USD
+  revenue?: number; // In USD
+  tagline?: string;
+  originalLanguage?: string;
+  
+  // Production information
+  productionCompanies?: Array<{
+    id: number;
+    name: string;
+    logoPath?: string;
+  }>;
+  
+  // Networks (TV only)
+  networks?: Array<{
+    id: number;
+    name: string;
+    logoPath?: string;
+  }>;
+  
+  // Genres (full objects)
+  genres?: Array<{
+    id: number;
+    name: string;
+  }>;
+  
+  // TV-specific fields
+  numberOfSeasons?: number;
+  numberOfEpisodes?: number;
+  episodeRuntime?: number[];
+  lastAirDate?: string;
 }
 
 export interface TrailerInfo {
@@ -277,10 +311,17 @@ export const metadataApi = {
   },
 
   /**
-   * Get trailers for a movie or TV show
+   * Get trailer videos for a movie or TV show
    */
   async getTrailers(id: number, mediaType: "movie" | "tv"): Promise<TrailerInfo[]> {
     return apiFetch<TrailerInfo[]>(`/metadata/${mediaType}/${id}/trailers`);
+  },
+
+  /**
+   * Get similar movies or TV shows (Phase 3)
+   */
+  async getSimilar(id: number, mediaType: "movie" | "tv"): Promise<MediaMetadata[]> {
+    return apiFetch<MediaMetadata[]>(`/metadata/${mediaType}/${id}/similar`);
   },
 
   /**
