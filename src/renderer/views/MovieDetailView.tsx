@@ -5,6 +5,7 @@ import { ArrowLeft, Play, Star, RefreshCw, Clock, DollarSign, Film, TrendingUp }
 import { metadataApi, type MediaMetadata, ApiError } from "../services/api";
 import DownloadPanel from "../components/DownloadPanel";
 import MetadataCard from "../components/MetadataCard";
+import SimilarContent from "../components/SimilarContent";
 import { formatCurrency, formatRuntime } from "../utils/formatting";
 import { getGenreColor } from "../constants/genreColors";
 
@@ -324,6 +325,9 @@ const MovieDetailView: React.FC = () => {
           </p>
         </div>
       )}
+
+      {/* Similar Movies Carousel (Phase 3 - T-DETAIL-007) */}
+      <SimilarContent currentId={parseInt(id!)} mediaType="movie" />
     </div>
   );
 };

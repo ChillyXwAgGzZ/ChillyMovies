@@ -6,6 +6,7 @@ import { metadataApi, type MediaMetadata, type TVSeason, ApiError } from "../ser
 import DownloadPanel from "../components/DownloadPanel";
 import EpisodeSelector from "../components/EpisodeSelector";
 import MetadataCard from "../components/MetadataCard";
+import SimilarContent from "../components/SimilarContent";
 import { formatEpisodeRuntime } from "../utils/formatting";
 import { getGenreColor } from "../constants/genreColors";
 
@@ -369,6 +370,9 @@ const TVDetailView: React.FC = () => {
           </p>
         </div>
       )}
+
+      {/* Similar TV Shows Carousel (Phase 3 - T-DETAIL-007) */}
+      <SimilarContent currentId={parseInt(id!)} mediaType="tv" />
 
       {/* Episode Selector Modal */}
       {showEpisodeSelector && (
