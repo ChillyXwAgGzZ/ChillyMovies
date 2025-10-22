@@ -128,7 +128,7 @@ const TVDetailView: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen animate-fade-in">
       {/* Back Button */}
       <button
         onClick={() => navigate(-1)}
