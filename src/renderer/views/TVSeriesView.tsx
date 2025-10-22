@@ -53,9 +53,12 @@ const TVSeriesView: React.FC = () => {
   // Restore scroll position on mount
   useEffect(() => {
     const savedPosition = sessionStorage.getItem(SCROLL_POSITION_KEY);
-    if (savedPosition && containerRef.current) {
+    if (savedPosition) {
       setTimeout(() => {
-        window.scrollTo(0, parseInt(savedPosition, 10));
+        const mainElement = document.querySelector('main');
+        if (mainElement) {
+          mainElement.scrollTop = parseInt(savedPosition, 10);
+        }
       }, 100);
     }
   }, []);
@@ -63,7 +66,10 @@ const TVSeriesView: React.FC = () => {
   // Save scroll position on unmount
   useEffect(() => {
     return () => {
-      sessionStorage.setItem(SCROLL_POSITION_KEY, window.scrollY.toString());
+      const mainElement = document.querySelector('main');
+      if (mainElement) {
+        sessionStorage.setItem(SCROLL_POSITION_KEY, mainElement.scrollTop.toString());
+      }
     };
   }, []);
 
