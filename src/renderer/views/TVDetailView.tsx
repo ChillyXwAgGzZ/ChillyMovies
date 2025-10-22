@@ -143,7 +143,8 @@ const TVDetailView: React.FC = () => {
           backgroundPosition: "center",
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/80 to-transparent"></div>
+        {/* Darker gradient overlay for better text contrast (Phase 3) */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/85 to-black/40"></div>
         
         <div className="relative p-8 md:p-12">
           <div className="flex flex-col md:flex-row gap-8">
@@ -152,7 +153,7 @@ const TVDetailView: React.FC = () => {
               <img
                 src={series.poster || "https://via.placeholder.com/300x450?text=No+Poster"}
                 alt={series.title}
-                className="w-64 rounded-lg shadow-2xl"
+                className="w-72 rounded-lg shadow-2xl"
                 onError={(e) => {
                   e.currentTarget.src = "https://via.placeholder.com/300x450?text=No+Poster";
                 }}
@@ -161,11 +162,17 @@ const TVDetailView: React.FC = () => {
 
             {/* Series Info */}
             <div className="flex-1 flex flex-col justify-end">
-              <h1 className="text-4xl md:text-5xl font-bold mb-4">{series.title}</h1>
+              {/* Force white text with shadow for readability in both themes (Phase 3) */}
+              <h1 
+                className="text-4xl md:text-5xl font-bold mb-4 text-white"
+                style={{ textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}
+              >
+                {series.title}
+              </h1>
               
               <div className="flex flex-wrap items-center gap-4 mb-6">
                 {series.year && (
-                  <span className="text-gray-300 text-lg">{series.year}</span>
+                  <span className="text-gray-100 text-lg">{series.year}</span>
                 )}
                 {series.voteAverage && (
                   <div className="flex items-center bg-yellow-500/20 px-3 py-1 rounded-full">
@@ -176,7 +183,10 @@ const TVDetailView: React.FC = () => {
               </div>
 
               {series.overview && (
-                <p className="text-gray-300 text-lg mb-8 max-w-3xl leading-relaxed">
+                <p 
+                  className="text-gray-100 text-lg mb-8 max-w-3xl leading-relaxed"
+                  style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}
+                >
                   {series.overview}
                 </p>
               )}
@@ -194,15 +204,16 @@ const TVDetailView: React.FC = () => {
                 {/* Episode Selector Button for TV Shows */}
                 <button
                   onClick={() => setShowEpisodeSelector(true)}
-                  className="flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 rounded-xl font-semibold transition-all shadow-lg shadow-indigo-500/30 hover:scale-[1.02]"
+                  className="flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 text-white rounded-xl font-semibold transition-all shadow-lg shadow-indigo-500/30 hover:scale-[1.02]"
                 >
                   <Download className="mr-2 h-5 w-5" />
                   {t("tv.selectEpisodes") || "Select Episodes"}
                 </button>
 
+                {/* Glass morphism button for better visibility (Phase 3) */}
                 <button
                   onClick={handleWatchTrailer}
-                  className="flex items-center px-6 py-3 bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 rounded-xl font-semibold transition-all shadow-md hover:scale-[1.02]"
+                  className="flex items-center px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/30 text-white rounded-xl font-semibold transition-all shadow-lg hover:scale-[1.02]"
                 >
                   <Play className="mr-2 h-5 w-5" />
                   {t("discovery.watchTrailer") || "Watch Trailer"}
