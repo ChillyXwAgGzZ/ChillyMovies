@@ -550,6 +550,22 @@ export function createServer(opts?: { downloader?: any; startLimiter?: any; canc
     }
   });
 
+  // Similar content endpoint (Phase 3)
+  app.get("/metadata/:mediaType/:id/similar", async (req: Request, res: Response) => {
+    const { mediaType, id } = req.params;
+    if (mediaType !== "movie" && mediaType !== "tv") {
+      res.status(400).json({ success: false, error: "Invalid media type. Use 'movie' or 'tv'" } as ApiResponse);
+      return;
+    }
+
+    try {
+      const similar = await metadata.fetchSimilar(parseInt(id), mediaType as "movie" | "tv");
+      res.json({ success: true, data: similar } as ApiResponse);
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: String(err) } as ApiResponse);
+    }
+  });
+
   // Popular content endpoint
   app.get("/metadata/popular", async (req: Request, res: Response) => {
     const { mediaType = "movie", page = "1" } = req.query as { mediaType?: string; page?: string };
