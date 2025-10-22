@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Play, Star, RefreshCw } from "lucide-react";
+import { ArrowLeft, Play, Star, RefreshCw, Clock, DollarSign, Film, TrendingUp } from "lucide-react";
 import { metadataApi, type MediaMetadata, ApiError } from "../services/api";
 import DownloadPanel from "../components/DownloadPanel";
+import MetadataCard from "../components/MetadataCard";
+import { formatCurrency, formatRuntime } from "../utils/formatting";
 
 const MovieDetailView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -212,15 +214,101 @@ const MovieDetailView: React.FC = () => {
         </div>
       </div>
 
-      {/* Additional Info Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      {/* Metadata Grid (Phase 3) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        {/* Status */}
+        {movie.status && (
+          <MetadataCard
+            label="Status"
+            value={movie.status}
+            icon={<Film size={18} />}
+          />
+        )}
+
+        {/* Runtime */}
+        {movie.runtime && (
+          <MetadataCard
+            label="Runtime"
+            value={formatRuntime(movie.runtime)}
+            icon={<Clock size={18} />}
+          />
+        )}
+
+        {/* Budget */}
+        {movie.budget && movie.budget > 0 && (
+          <MetadataCard
+            label="Budget"
+            value={formatCurrency(movie.budget)}
+            icon={<DollarSign size={18} />}
+          />
+        )}
+
+        {/* Revenue */}
+        {movie.revenue && movie.revenue > 0 && (
+          <MetadataCard
+            label="Revenue"
+            value={formatCurrency(movie.revenue)}
+            icon={<TrendingUp size={18} />}
+          />
+        )}
+
+        {/* Release Date */}
         {movie.releaseDate && (
-          <div>
-            <h3 className="text-xl font-semibold mb-2">{t("movie.releaseDate") || "Release Date"}</h3>
-            <p className="text-gray-400">{new Date(movie.releaseDate).toLocaleDateString()}</p>
-          </div>
+          <MetadataCard
+            label="Release Date"
+            value={new Date(movie.releaseDate).toLocaleDateString()}
+          />
+        )}
+
+        {/* Original Language */}
+        {movie.originalLanguage && (
+          <MetadataCard
+            label="Language"
+            value={movie.originalLanguage.toUpperCase()}
+          />
         )}
       </div>
+
+      {/* Production Companies (Phase 3) */}
+      {movie.productionCompanies && movie.productionCompanies.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+            Production Companies
+          </h3>
+          <div className="flex flex-wrap gap-6 items-center">
+            {movie.productionCompanies.slice(0, 5).map((company) => (
+              <div
+                key={company.id}
+                className="flex items-center gap-2 bg-white/5 dark:bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3 hover:bg-white/10 dark:hover:bg-white/15 transition-all"
+              >
+                {company.logoPath ? (
+                  <img
+                    src={company.logoPath}
+                    alt={company.name}
+                    className="h-8 object-contain filter brightness-0 dark:brightness-100 invert dark:invert-0"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                      e.currentTarget.nextElementSibling!.classList.remove("hidden");
+                    }}
+                  />
+                ) : null}
+                <span className={`text-sm font-medium text-gray-900 dark:text-white ${company.logoPath ? "hidden" : ""}`}>
+                  {company.name}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Tagline (Phase 3) */}
+      {movie.tagline && (
+        <div className="mb-8 p-6 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border-l-4 border-indigo-500 rounded-lg">
+          <p className="text-lg italic text-gray-700 dark:text-gray-300">
+            "{movie.tagline}"
+          </p>
+        </div>
+      )}
     </div>
   );
 };

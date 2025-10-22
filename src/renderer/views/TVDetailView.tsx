@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Play, Star, Download, RefreshCw } from "lucide-react";
+import { ArrowLeft, Play, Star, Download, RefreshCw, Clock, Tv, TrendingUp, Calendar } from "lucide-react";
 import { metadataApi, type MediaMetadata, type TVSeason, ApiError } from "../services/api";
 import DownloadPanel from "../components/DownloadPanel";
 import EpisodeSelector from "../components/EpisodeSelector";
+import MetadataCard from "../components/MetadataCard";
+import { formatEpisodeRuntime } from "../utils/formatting";
 
 const TVDetailView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -224,15 +226,134 @@ const TVDetailView: React.FC = () => {
         </div>
       </div>
 
-      {/* Additional Info Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      {/* Metadata Grid (Phase 3) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        {/* Status */}
+        {series.status && (
+          <MetadataCard
+            label="Status"
+            value={series.status}
+            icon={<Tv size={18} />}
+          />
+        )}
+
+        {/* Seasons & Episodes */}
+        {series.numberOfSeasons && (
+          <MetadataCard
+            label="Seasons"
+            value={`${series.numberOfSeasons} Season${series.numberOfSeasons > 1 ? "s" : ""} • ${series.numberOfEpisodes || 0} Episodes`}
+            icon={<TrendingUp size={18} />}
+          />
+        )}
+
+        {/* Episode Runtime */}
+        {series.episodeRuntime && series.episodeRuntime.length > 0 && (
+          <MetadataCard
+            label="Episode Runtime"
+            value={formatEpisodeRuntime(series.episodeRuntime)}
+            icon={<Clock size={18} />}
+          />
+        )}
+
+        {/* First Air Date */}
         {series.releaseDate && (
-          <div>
-            <h3 className="text-xl font-semibold mb-2">{t("tv.firstAirDate") || "First Air Date"}</h3>
-            <p className="text-gray-400">{new Date(series.releaseDate).toLocaleDateString()}</p>
-          </div>
+          <MetadataCard
+            label="First Air Date"
+            value={new Date(series.releaseDate).toLocaleDateString()}
+            icon={<Calendar size={18} />}
+          />
+        )}
+
+        {/* Last Air Date */}
+        {series.lastAirDate && (
+          <MetadataCard
+            label="Last Air Date"
+            value={new Date(series.lastAirDate).toLocaleDateString()}
+            icon={<Calendar size={18} />}
+          />
+        )}
+
+        {/* Original Language */}
+        {series.originalLanguage && (
+          <MetadataCard
+            label="Language"
+            value={series.originalLanguage.toUpperCase()}
+          />
         )}
       </div>
+
+      {/* Networks (Phase 3) */}
+      {series.networks && series.networks.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+            Networks
+          </h3>
+          <div className="flex flex-wrap gap-6 items-center">
+            {series.networks.slice(0, 5).map((network) => (
+              <div
+                key={network.id}
+                className="flex items-center gap-2 bg-white/5 dark:bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3 hover:bg-white/10 dark:hover:bg-white/15 transition-all"
+              >
+                {network.logoPath ? (
+                  <img
+                    src={network.logoPath}
+                    alt={network.name}
+                    className="h-8 object-contain filter brightness-0 dark:brightness-100 invert dark:invert-0"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                      e.currentTarget.nextElementSibling!.classList.remove("hidden");
+                    }}
+                  />
+                ) : null}
+                <span className={`text-sm font-medium text-gray-900 dark:text-white ${network.logoPath ? "hidden" : ""}`}>
+                  {network.name}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Production Companies (Phase 3) */}
+      {series.productionCompanies && series.productionCompanies.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+            Production Companies
+          </h3>
+          <div className="flex flex-wrap gap-6 items-center">
+            {series.productionCompanies.slice(0, 5).map((company) => (
+              <div
+                key={company.id}
+                className="flex items-center gap-2 bg-white/5 dark:bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3 hover:bg-white/10 dark:hover:bg-white/15 transition-all"
+              >
+                {company.logoPath ? (
+                  <img
+                    src={company.logoPath}
+                    alt={company.name}
+                    className="h-8 object-contain filter brightness-0 dark:brightness-100 invert dark:invert-0"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                      e.currentTarget.nextElementSibling!.classList.remove("hidden");
+                    }}
+                  />
+                ) : null}
+                <span className={`text-sm font-medium text-gray-900 dark:text-white ${company.logoPath ? "hidden" : ""}`}>
+                  {company.name}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Tagline (Phase 3) */}
+      {series.tagline && (
+        <div className="mb-8 p-6 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border-l-4 border-indigo-500 rounded-lg">
+          <p className="text-lg italic text-gray-700 dark:text-gray-300">
+            "{series.tagline}"
+          </p>
+        </div>
+      )}
 
       {/* Episode Selector Modal */}
       {showEpisodeSelector && (
