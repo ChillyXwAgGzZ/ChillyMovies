@@ -112,44 +112,303 @@ created: 2025-10-21
 
 ---
 
-## 🎯 Phase 3: Movie & TV Detail Pages Enhancement
+## 🎯 Phase 3: Movie & TV Detail Pages Enhancement **[ACTIVE 🚀]**
 
-**Goal**: Ensure detail pages fetch live TMDB data, show comprehensive metadata, add "Similar" carousel
+**Goal**: Fix contrast issues, show comprehensive metadata, add "Similar" carousel  
+**Status**: 0/10 tasks complete  
+**Duration**: ~8.5 hours estimated  
+**Detailed Plan**: See `/specs/005-ui-fixes-features/detail-pages-enhancement-plan.md` and `/specs/005-ui-fixes-features/plan.md`
 
-### 3.1 Metadata Completeness
-- [ ] T013 [2h] [P1] **Verify and display all required metadata fields** in MovieDetailView and TVDetailView
+### 3.1 Backend Enhancements (3 hours)
+
+- [ ] T-DETAIL-001 [1.5h] [P1] **Extend TMDB data fetching** in metadata.ts
+  - File: `src/metadata.ts` (line ~113, `fetchByTMDBId` method)
+  - **Task**: Update TMDB API field mapping to include:
+    - `runtime` (minutes), `status` (Released/In Production/etc.)
+    - `budget` (USD), `revenue` (USD)
+    - `production_companies` (array: `{id, name, logo_path}`)
+    - `networks` (TV only, array: `{id, name, logo_path}`)
+    - `genres` (full objects: `{id, name}` not just IDs)
+    - `tagline`, `original_language`
+    - `number_of_seasons`, `number_of_episodes` (TV only)
+    - `episode_run_time` (TV only, array of typical runtimes)
+    - `last_air_date` (TV only)
+  - **Implementation**:
+    ```typescript
+    return {
+      id: data.id,
+      title: data.title || data.name,
+      overview: data.overview,
+      // ... existing fields ...
+      runtime: data.runtime,
+      status: data.status,
+      budget: data.budget,
+      revenue: data.revenue,
+      productionCompanies: (data.production_companies || []).map(c => ({
+        id: c.id,
+        name: c.name,
+        logoPath: c.logo_path ? `https://image.tmdb.org/t/p/w200${c.logo_path}` : undefined
+      })),
+      // ... add remaining fields ...
+    };
+    ```
+  - **Test**: Console.log response for Movie ID 299536 (Avengers: Infinity War), TV ID 1399 (Game of Thrones)
+
+- [ ] T-DETAIL-002 [1h] [P1] **Add similar content endpoint**
+  - Files: `src/metadata.ts`, `src/api-server.ts`
+  - **Task 1**: Create `fetchSimilar()` method in TMDBMetadataProvider
+    ```typescript
+    async fetchSimilar(tmdbId: number, mediaType: "movie" | "tv"): Promise<MediaMetadata[]> {
+      const url = `${this.baseUrl}/${mediaType}/${tmdbId}/similar?api_key=${this.apiKey}&page=1`;
+      // Fetch, map to MediaMetadata[], limit to 12 items, cache 30min
+    }
+    ```
+  - **Task 2**: Add API route in api-server.ts (line ~538 after trailers endpoint)
+    ```typescript
+    app.get("/metadata/:mediaType/:id/similar", async (req: Request, res: Response) => {
+      const { mediaType, id } = req.params;
+      const result = await metadata.fetchSimilar(parseInt(id), mediaType as "movie" | "tv");
+      res.json({ success: true, data: result } as ApiResponse);
+    });
+    ```
+  - **Test**: `curl http://localhost:3000/metadata/movie/299536/similar | jq`
+
+- [ ] T-DETAIL-003 [0.5h] [P1] **Update type definitions**
+  - Files: `src/renderer/services/api.ts`, `src/types.ts`
+  - **Task**: Extend `MediaMetadata` interface with new fields (see detail-pages-enhancement-plan.md line 285)
+  - **Add to api.ts**:
+    ```typescript
+    async getSimilar(id: number, mediaType: "movie" | "tv"): Promise<MediaMetadata[]> {
+      const response = await fetch(`${API_BASE_URL}/metadata/${mediaType}/${id}/similar`);
+      const data: ApiResponse<MediaMetadata[]> = await response.json();
+      if (!data.success) throw new Error(data.error || "Failed to fetch similar content");
+      return data.data || [];
+    }
+    ```
+  - **Test**: TypeScript errors should be 0 (`npm run typecheck`)
+
+**Checkpoint 1**: Backend ready, API tested with curl, types aligned
+
+---
+
+### 3.2 Frontend UI Enhancements (4 hours)
+
+- [ ] T-DETAIL-004 [1h] [P0] **Fix text contrast in hero section** ⚠️ **CRITICAL - START HERE**
   - Files: `src/renderer/views/MovieDetailView.tsx`, `src/renderer/views/TVDetailView.tsx`
-  - Required fields (ensure all are fetched and displayed):
-    - ✅ Title, poster, backdrop (already present)
-    - ✅ Synopsis/overview, release date, year (already present)
-    - ✅ Rating (already present)
-    - ⚠️ Runtime (add if missing)
-    - ⚠️ Genres (add badges)
-    - ⚠️ Production companies (add logos/text)
-    - ⚠️ Budget & Revenue (movies only, format with $ signs)
-  - Layout: Add metadata grid below action buttons
+  - **Problem**: Black text on dark poster backgrounds in light mode (see user screenshot)
+  - **Fix 1**: Darken backdrop gradient (line ~118 in MovieDetailView.tsx)
+    ```tsx
+    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/85 to-black/40"></div>
+    ```
+  - **Fix 2**: Force white text for title and description (line ~132)
+    ```tsx
+    <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white" 
+        style={{ textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>
+      {movie.title}
+    </h1>
+    <p className="text-gray-100 text-lg mb-8" 
+       style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>
+      {movie.overview}
+    </p>
+    ```
+  - **Fix 3**: Update button styles (line ~165)
+    ```tsx
+    // Download button
+    className="... bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/50"
+    
+    // Watch Trailer button
+    className="... bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/30 text-white"
+    ```
+  - **Test**: Open "Captain Hook - The Cursed Tides" in light mode, verify title/description/buttons readable
+  - **Acceptance**: Screenshot showing clear text contrast in light mode
 
-- [ ] T014 [1h] [P2] **Improve cinematic header layout**: Enhance poster + backdrop gradient design
-  - Current: Backdrop with gradient overlay is good
-  - Enhance: Add glassmorphism card for metadata section, improve responsive layout
-  - Mobile: Stack poster and info vertically
-
-### 3.2 Similar/Recommended Content
-- [ ] T015 [2.5h] [P1] **Add "Similar Movies/TV Shows" carousel at bottom of detail pages**
+- [ ] T-DETAIL-005 [1.5h] [P1] **Create metadata info grid**
   - Files: `src/renderer/views/MovieDetailView.tsx`, `src/renderer/views/TVDetailView.tsx`
-  - Component: `src/renderer/components/SimilarCarousel.tsx` (new file)
-  - API: `metadataApi.getSimilar(id, mediaType)`
-  - Design: Horizontal scroll carousel with 6-8 cards visible
-  - Cards: Clickable, navigate to respective detail page
-  - Include: Poster, title, year, rating
+  - **Task 1**: Create reusable `MetadataCard` component (new file: `src/renderer/components/MetadataCard.tsx`)
+    ```tsx
+    interface MetadataCardProps {
+      label: string;
+      value: string | React.ReactNode;
+      icon?: React.ReactNode;
+    }
+    export const MetadataCard: React.FC<MetadataCardProps> = ({ label, value, icon }) => (
+      <div className="bg-white/5 dark:bg-white/10 backdrop-blur border border-white/20 rounded-lg p-4">
+        {/* ... render label + value ... */}
+      </div>
+    );
+    ```
+  - **Task 2**: Add utility functions (new file: `src/renderer/utils/formatting.ts`)
+    ```typescript
+    export function formatCurrency(amount: number): string {
+      if (amount >= 1_000_000_000) return `$${(amount / 1_000_000_000).toFixed(1)}B`;
+      if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`;
+      return `$${amount.toLocaleString()}`;
+    }
+    export function formatRuntime(minutes: number): string {
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+      return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+    }
+    ```
+  - **Task 3**: Add 2x2 grid below action buttons in MovieDetailView.tsx (after line ~180)
+    ```tsx
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+      {movie.status && <MetadataCard label="Status" value={movie.status} />}
+      {movie.runtime && <MetadataCard label="Runtime" value={formatRuntime(movie.runtime)} />}
+      {movie.budget && <MetadataCard label="Budget" value={formatCurrency(movie.budget)} />}
+      {movie.revenue && <MetadataCard label="Revenue" value={formatCurrency(movie.revenue)} />}
+      {movie.productionCompanies && movie.productionCompanies.length > 0 && (
+        <MetadataCard label="Production" value={
+          <div className="flex flex-wrap gap-2">
+            {movie.productionCompanies.slice(0, 3).map(c => (
+              c.logoPath ? <img key={c.id} src={c.logoPath} alt={c.name} className="h-8" /> : c.name
+            ))}
+          </div>
+        } />
+      )}
+    </div>
+    ```
+  - **Test**: Verify all metadata displays correctly, conditional rendering works (no "undefined" shown)
 
-### 3.3 Loading & Error States
-- [ ] T016 [1h] [P2] **Enhance loading states with skeleton screens**: Replace spinner with content skeleton
+- [ ] T-DETAIL-006 [0.5h] [P1] **Add genre pills to hero section**
   - Files: `src/renderer/views/MovieDetailView.tsx`, `src/renderer/views/TVDetailView.tsx`
-  - Design: Skeleton for poster (rectangle), title (bar), metadata (lines)
-  - Library: Consider using react-loading-skeleton or custom implementation
+  - **Task 1**: Create genre color mapping (add to MovieDetailView.tsx top)
+    ```typescript
+    const GENRE_COLORS: Record<number, string> = {
+      28: "bg-red-500/80",      // Action
+      12: "bg-amber-500/80",    // Adventure
+      16: "bg-purple-500/80",   // Animation
+      35: "bg-yellow-500/80",   // Comedy
+      80: "bg-gray-700/80",     // Crime
+      18: "bg-blue-500/80",     // Drama
+      27: "bg-red-800/80",      // Horror
+      // ... add remaining 24 genres (see detail-pages-enhancement-plan.md line 480)
+    };
+    ```
+  - **Task 2**: Render genre pills below title (line ~145, after rating badge)
+    ```tsx
+    {movie.genres && movie.genres.length > 0 && (
+      <div className="flex flex-wrap gap-2 mb-4">
+        {movie.genres.slice(0, 6).map(genre => (
+          <span key={genre.id} 
+                className={`px-3 py-1 rounded-full text-white text-sm font-medium ${GENRE_COLORS[genre.id] || 'bg-gray-600/80'}`}>
+            {genre.name}
+          </span>
+        ))}
+      </div>
+    )}
+    ```
+  - **Test**: Verify genre pills display with correct colors, max 6 visible
 
-**Checkpoint**: Detail pages are comprehensive, polished, and load live TMDB data reliably
+- [ ] T-DETAIL-007 [1h] [P1] **Create similar content carousel**
+  - Files: New component `src/renderer/components/SimilarContent.tsx`
+  - **Task 1**: Create component with props `mediaType`, `currentId`
+    ```tsx
+    interface SimilarContentProps {
+      mediaType: "movie" | "tv";
+      currentId: number;
+    }
+    export const SimilarContent: React.FC<SimilarContentProps> = ({ mediaType, currentId }) => {
+      const [similar, setSimilar] = useState<MediaMetadata[]>([]);
+      const [loading, setLoading] = useState(true);
+      
+      useEffect(() => {
+        metadataApi.getSimilar(currentId, mediaType)
+          .then(data => setSimilar(data.slice(0, 12)))
+          .catch(err => console.error("Failed to fetch similar content:", err))
+          .finally(() => setLoading(false));
+      }, [currentId, mediaType]);
+      
+      return (
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold mb-6">
+            Similar {mediaType === "movie" ? "Movies" : "TV Shows"}
+          </h2>
+          <div className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4">
+            {loading ? (
+              Array(6).fill(0).map((_, i) => <div key={i} className="min-w-[200px] h-[300px] bg-gray-700 animate-pulse rounded-lg" />)
+            ) : (
+              similar.map(item => (
+                <div key={item.id} className="min-w-[200px] snap-start">
+                  <MovieCard media={item} />
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      );
+    };
+    ```
+  - **Task 2**: Add to MovieDetailView.tsx and TVDetailView.tsx (bottom, after metadata grid)
+    ```tsx
+    {id && <SimilarContent mediaType="movie" currentId={parseInt(id)} />}
+    ```
+  - **Test**: Scroll carousel, click on similar item, verify navigation to detail page
+
+**Checkpoint 2**: Detail pages visually complete, all metadata + similar content displayed
+
+---
+
+### 3.3 Polish & Testing (1.5 hours)
+
+- [ ] T-DETAIL-008 [0.5h] [P2] **Add animations and transitions**
+  - Files: `MovieDetailView.tsx`, `TVDetailView.tsx`, `SimilarContent.tsx`
+  - **Task 1**: Add fade-in animation to main content (wrap in div at line ~115)
+    ```tsx
+    <div className="min-h-screen opacity-0 animate-fade-in">
+    ```
+  - **Task 2**: Add to tailwind.config.js if needed
+    ```js
+    theme: {
+      extend: {
+        animation: {
+          'fade-in': 'fadeIn 0.5s ease-in forwards',
+        },
+        keyframes: {
+          fadeIn: {
+            '0%': { opacity: '0', transform: 'translateY(10px)' },
+            '100%': { opacity: '1', transform: 'translateY(0)' },
+          },
+        },
+      },
+    },
+    ```
+  - **Task 3**: Add hover effects to metadata cards
+    ```tsx
+    <MetadataCard className="transition-transform hover:scale-105" ... />
+    ```
+
+- [ ] T-DETAIL-009 [0.5h] [P1] **Test responsiveness**
+  - **Test Plan**:
+    - [ ] Mobile (320px): Poster stacks above info, metadata grid 1 column
+    - [ ] Mobile (375px): Same as 320px
+    - [ ] Tablet (768px): Metadata grid 2 columns, carousel scrolls smoothly
+    - [ ] Laptop (1024px): Full layout, 2 columns
+    - [ ] Desktop (1440px): Full layout, 2 columns
+    - [ ] Large (1920px): Full layout, 2 columns
+  - **Both Themes**: Test all breakpoints in light and dark mode
+  - **Carousel**: Verify touch scroll on mobile, mouse drag on desktop
+
+- [ ] T-DETAIL-010 [0.5h] [P1] **Final QA and screenshots**
+  - **QA Checklist**:
+    - [ ] Light mode: Title readable on dark backdrops (test "Captain Hook")
+    - [ ] Dark mode: No visual regressions
+    - [ ] Metadata: All fields display correctly (test 5+ movies/TV shows)
+    - [ ] Genres: Pills show correct colors, max 6 visible
+    - [ ] Similar: Carousel loads, scrolls, navigates correctly
+    - [ ] TypeScript: 0 errors (`npm run typecheck`)
+    - [ ] Console: No warnings or errors
+    - [ ] Performance: Page loads <1.5s (fresh), <500ms (cached)
+  - **Screenshots**:
+    - [ ] Before/After: "Captain Hook" in light mode (contrast fix)
+    - [ ] Metadata grid: Movie with all fields (Avengers: Infinity War)
+    - [ ] Metadata grid: TV show with all fields (Game of Thrones)
+    - [ ] Similar carousel: Desktop view
+    - [ ] Similar carousel: Mobile view
+    - [ ] Genre pills: Multiple genres displayed
+  - **Manual Test Flow**: Movies list → Movie detail → Similar movie → Detail → Back
+
+**Checkpoint 3**: Phase 3 complete, ready for user review ✅
 
 ---
 
