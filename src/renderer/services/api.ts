@@ -3,7 +3,12 @@
  * Provides typed wrappers for all backend endpoints with error handling and retry logic
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+// In development with Vite proxy, use relative URLs
+// In Electron production, use the backend port from IPC
+const isDevelopment = import.meta.env.DEV;
+const API_BASE_URL = isDevelopment 
+  ? "" // Use Vite proxy in development
+  : import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
 // Response types matching backend ApiResponse interface
 export interface ApiResponse<T = any> {
@@ -23,6 +28,41 @@ export interface MediaMetadata {
   voteAverage?: number;
   releaseDate?: string;
   mediaType?: "movie" | "tv";
+  genreIds?: number[]; // TMDB genre IDs
+  
+  // Extended metadata (Phase 3)
+  runtime?: number; // In minutes
+  status?: string; // "Released", "Returning Series", "Ended", etc.
+  budget?: number; // In USD
+  revenue?: number; // In USD
+  tagline?: string;
+  originalLanguage?: string;
+  
+  // Production information
+  productionCompanies?: Array<{
+    id: number;
+    name: string;
+    logoPath?: string;
+  }>;
+  
+  // Networks (TV only)
+  networks?: Array<{
+    id: number;
+    name: string;
+    logoPath?: string;
+  }>;
+  
+  // Genres (full objects)
+  genres?: Array<{
+    id: number;
+    name: string;
+  }>;
+  
+  // TV-specific fields
+  numberOfSeasons?: number;
+  numberOfEpisodes?: number;
+  episodeRuntime?: number[];
+  lastAirDate?: string;
 }
 
 export interface TrailerInfo {
@@ -102,57 +142,154 @@ export interface DownloadProgressEvent {
  * Custom error class for API errors
  */
 export class ApiError extends Error {
+  public readonly errorType: 'network' | 'server' | 'client' | 'rate-limit' | 'not-found';
+  
   constructor(
     message: string,
     public status?: number,
-    public response?: any
+    public response?: any,
+    public isRetryable: boolean = false
   ) {
     super(message);
     this.name = "ApiError";
+    
+    // Determine error type
+    if (!status) {
+      this.errorType = 'network';
+    } else if (status === 404) {
+      this.errorType = 'not-found';
+    } else if (status === 429) {
+      this.errorType = 'rate-limit';
+    } else if (status >= 500) {
+      this.errorType = 'server';
+    } else {
+      this.errorType = 'client';
+    }
+  }
+  
+  /**
+   * Get a user-friendly error message
+   */
+  getUserMessage(): string {
+    switch (this.errorType) {
+      case 'network':
+        return 'Unable to connect. Please check your internet connection and try again.';
+      case 'not-found':
+        return 'The requested content was not found.';
+      case 'rate-limit':
+        return 'Too many requests. Please wait a moment and try again.';
+      case 'server':
+        return 'Server error. Please try again later.';
+      case 'client':
+        return this.message || 'An error occurred. Please try again.';
+      default:
+        return 'An unexpected error occurred.';
+    }
   }
 }
 
 /**
- * Fetch wrapper with error handling
+ * Retry configuration
+ */
+interface RetryConfig {
+  maxRetries?: number;
+  initialDelay?: number;
+  maxDelay?: number;
+  shouldRetry?: (error: ApiError) => boolean;
+}
+
+const DEFAULT_RETRY_CONFIG: Required<RetryConfig> = {
+  maxRetries: 3,
+  initialDelay: 1000,
+  maxDelay: 10000,
+  shouldRetry: (error: ApiError) => {
+    // Retry on network errors or server errors (5xx)
+    if (!error.status) return true; // Network error
+    if (error.status >= 500) return true; // Server error
+    if (error.status === 429) return true; // Rate limit
+    return false;
+  },
+};
+
+/**
+ * Sleep utility for retry delays
+ */
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Fetch wrapper with error handling and retry logic
  */
 async function apiFetch<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  retryConfig: RetryConfig = {}
 ): Promise<T> {
+  const config = { ...DEFAULT_RETRY_CONFIG, ...retryConfig };
   const url = `${API_BASE_URL}${endpoint}`;
   
-  try {
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
-    });
+  let lastError: ApiError | null = null;
+  
+  for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, {
+        ...options,
+        headers: {
+          "Content-Type": "application/json",
+          ...options.headers,
+        },
+      });
 
-    const data: ApiResponse<T> = await response.json();
+      const data: ApiResponse<T> = await response.json();
 
-    if (!response.ok || !data.success) {
-      throw new ApiError(
-        data.error || `HTTP ${response.status}: ${response.statusText}`,
-        response.status,
-        data
+      if (!response.ok || !data.success) {
+        const error = new ApiError(
+          data.error || `HTTP ${response.status}: ${response.statusText}`,
+          response.status,
+          data,
+          response.status >= 500 || response.status === 429
+        );
+        throw error;
+      }
+
+      return data.data as T;
+    } catch (error) {
+      if (error instanceof ApiError) {
+        lastError = error;
+      } else {
+        // Network or parsing errors
+        lastError = new ApiError(
+          error instanceof Error ? error.message : "Network request failed",
+          undefined,
+          error,
+          true // Network errors are retryable
+        );
+      }
+      
+      // Check if we should retry
+      const shouldRetry = config.shouldRetry(lastError);
+      const isLastAttempt = attempt === config.maxRetries;
+      
+      if (!shouldRetry || isLastAttempt) {
+        throw lastError;
+      }
+      
+      // Calculate delay with exponential backoff
+      const delay = Math.min(
+        config.initialDelay * Math.pow(2, attempt),
+        config.maxDelay
       );
+      
+      console.warn(
+        `API request failed (attempt ${attempt + 1}/${config.maxRetries + 1}), retrying in ${delay}ms...`,
+        lastError.message
+      );
+      
+      await sleep(delay);
     }
-
-    return data.data as T;
-  } catch (error) {
-    if (error instanceof ApiError) {
-      throw error;
-    }
-    
-    // Network or parsing errors
-    throw new ApiError(
-      error instanceof Error ? error.message : "Network request failed",
-      undefined,
-      error
-    );
   }
+  
+  // This should never be reached, but TypeScript needs it
+  throw lastError!;
 }
 
 /**
@@ -174,10 +311,17 @@ export const metadataApi = {
   },
 
   /**
-   * Get trailers for a movie or TV show
+   * Get trailer videos for a movie or TV show
    */
   async getTrailers(id: number, mediaType: "movie" | "tv"): Promise<TrailerInfo[]> {
     return apiFetch<TrailerInfo[]>(`/metadata/${mediaType}/${id}/trailers`);
+  },
+
+  /**
+   * Get similar movies or TV shows (Phase 3)
+   */
+  async getSimilar(id: number, mediaType: "movie" | "tv"): Promise<MediaMetadata[]> {
+    return apiFetch<MediaMetadata[]>(`/metadata/${mediaType}/${id}/similar`);
   },
 
   /**
@@ -185,6 +329,44 @@ export const metadataApi = {
    */
   async getPopular(mediaType: "movie" | "tv" = "movie", page: number = 1): Promise<MediaMetadata[]> {
     return apiFetch<MediaMetadata[]>(`/metadata/popular?mediaType=${mediaType}&page=${page}`);
+  },
+
+  /**
+   * Discover content with filters (Firebase Studio pattern)
+   */
+  async discover(
+    mediaType: "movie" | "tv" = "movie",
+    page: number = 1,
+    filters?: {
+      genres?: number[];
+      yearFrom?: number;
+      yearTo?: number;
+      minRating?: number;
+      sortBy?: "popularity" | "rating" | "release_date" | "title";
+    }
+  ): Promise<MediaMetadata[]> {
+    const params = new URLSearchParams({
+      mediaType,
+      page: page.toString(),
+    });
+
+    if (filters?.genres && filters.genres.length > 0) {
+      params.append('genres', filters.genres.join(','));
+    }
+    if (filters?.yearFrom) {
+      params.append('yearFrom', filters.yearFrom.toString());
+    }
+    if (filters?.yearTo) {
+      params.append('yearTo', filters.yearTo.toString());
+    }
+    if (filters?.minRating) {
+      params.append('minRating', filters.minRating.toString());
+    }
+    if (filters?.sortBy) {
+      params.append('sortBy', filters.sortBy);
+    }
+
+    return apiFetch<MediaMetadata[]>(`/metadata/discover?${params.toString()}`);
   },
 
   /**

@@ -34,6 +34,8 @@ const resources = {
 
       // Navigation
       "nav.home": "Home",
+      "nav.movies": "Movies",
+      "nav.tvSeries": "TV Series",
       "nav.discovery": "Discovery",
       "nav.library": "Library",
       "nav.downloads": "Downloads",
@@ -41,9 +43,13 @@ const resources = {
 
       // Sidebar
       "sidebar.languageLabel": "Language",
+      "sidebar.collapse": "Collapse",
+      "sidebar.expand": "Expand",
+      "sidebar.mainNavigation": "Main navigation",
+      "sidebar.primaryNavigation": "Primary navigation",
       "languages.english": "English",
       "languages.swahili": "Kiswahili",
-  "sidebar.tagline": "Offline cinema experience",
+      "sidebar.tagline": "Offline cinema experience",
 
       // Header
       "header.searchPlaceholder": "Search for movies, series...",
@@ -107,7 +113,7 @@ const resources = {
       "downloads.actions.cancelError": "Failed to cancel download",
 
       // Download actions
-      "download.start": "Start",
+      "download.start": "Download",
       "download.pause": "Pause",
       "download.resume": "Resume",
       "download.cancel": "Cancel",
@@ -174,6 +180,9 @@ const resources = {
       "common.retry": "Retry",
       "common.back": "Back",
       "common.goBack": "Go Back",
+      "common.selectAll": "Select All",
+      "common.deselectAll": "Deselect All",
+      "common.backToHome": "Back to Home",
 
       // Movie Details
       "movie.releaseDate": "Release Date",
@@ -224,6 +233,8 @@ const resources = {
 
       // Navigation
       "nav.home": "Nyumbani",
+      "nav.movies": "Filamu",
+      "nav.tvSeries": "Vipindi vya Runinga",
       "nav.discovery": "Gundua",
       "nav.library": "Maktaba",
       "nav.downloads": "Upakuaji",
@@ -231,9 +242,13 @@ const resources = {
 
       // Sidebar
       "sidebar.languageLabel": "Lugha",
+      "sidebar.collapse": "Kunja",
+      "sidebar.expand": "Panua",
+      "sidebar.mainNavigation": "Urambazaji mkuu",
+      "sidebar.primaryNavigation": "Urambazaji wa msingi",
       "languages.english": "Kiingereza",
       "languages.swahili": "Kiswahili",
-  "sidebar.tagline": "Uzoefu wa sinema bila mtandao",
+      "sidebar.tagline": "Uzoefu wa sinema bila mtandao",
 
       // Header
       "header.searchPlaceholder": "Tafuta filamu, vipindi...",
@@ -297,7 +312,7 @@ const resources = {
       "downloads.actions.cancelError": "Imeshindwa kughairi upakuaji",
 
       // Download actions
-      "download.start": "Anza",
+      "download.start": "Pakua",
       "download.pause": "Sitisha",
       "download.resume": "Endelea",
       "download.cancel": "Ghairi",
@@ -364,6 +379,9 @@ const resources = {
       "common.retry": "Jaribu Tena",
       "common.back": "Rudi",
       "common.goBack": "Rudi Nyuma",
+      "common.selectAll": "Chagua Zote",
+      "common.deselectAll": "Ondoa Zote",
+      "common.backToHome": "Rudi Nyumbani",
 
       // Movie Details
       "movie.releaseDate": "Tarehe ya Kutolewa",

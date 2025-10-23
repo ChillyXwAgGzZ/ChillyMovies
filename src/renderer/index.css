@@ -17,6 +17,15 @@
   background-color: #6b7280;
 }
 
+/* Hide scrollbar for carousel (Phase 3 - T-DETAIL-007) */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
 /* Toast Animations */
 @keyframes slide-in-right {
   from {

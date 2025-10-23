@@ -550,6 +550,22 @@ export function createServer(opts?: { downloader?: any; startLimiter?: any; canc
     }
   });
 
+  // Similar content endpoint (Phase 3)
+  app.get("/metadata/:mediaType/:id/similar", async (req: Request, res: Response) => {
+    const { mediaType, id } = req.params;
+    if (mediaType !== "movie" && mediaType !== "tv") {
+      res.status(400).json({ success: false, error: "Invalid media type. Use 'movie' or 'tv'" } as ApiResponse);
+      return;
+    }
+
+    try {
+      const similar = await metadata.fetchSimilar(parseInt(id), mediaType as "movie" | "tv");
+      res.json({ success: true, data: similar } as ApiResponse);
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: String(err) } as ApiResponse);
+    }
+  });
+
   // Popular content endpoint
   app.get("/metadata/popular", async (req: Request, res: Response) => {
     const { mediaType = "movie", page = "1" } = req.query as { mediaType?: string; page?: string };
@@ -563,6 +579,68 @@ export function createServer(opts?: { downloader?: any; startLimiter?: any; canc
       const results = await metadata.fetchPopular(mediaType as "movie" | "tv", parseInt(page));
       res.json({ success: true, data: results } as ApiResponse);
     } catch (err: any) {
+      res.status(500).json({ success: false, error: String(err) } as ApiResponse);
+    }
+  });
+
+  // Discover content with filters (Firebase Studio pattern)
+  app.get("/metadata/discover", async (req: Request, res: Response) => {
+    const { 
+      mediaType = "movie", 
+      page = "1",
+      genres,
+      yearFrom,
+      yearTo,
+      minRating,
+      sortBy = "popularity"
+    } = req.query as { 
+      mediaType?: string; 
+      page?: string;
+      genres?: string;
+      yearFrom?: string;
+      yearTo?: string;
+      minRating?: string;
+      sortBy?: string;
+    };
+    
+    if (mediaType !== "movie" && mediaType !== "tv") {
+      res.status(400).json({ success: false, error: "Invalid media type. Use 'movie' or 'tv'" } as ApiResponse);
+      return;
+    }
+
+    try {
+      // Parse filter parameters
+      const filters: any = {};
+      
+      if (genres) {
+        filters.genres = genres.split(',').map(g => parseInt(g.trim())).filter(g => !isNaN(g));
+      }
+      
+      if (yearFrom) {
+        filters.yearFrom = parseInt(yearFrom);
+      }
+      
+      if (yearTo) {
+        filters.yearTo = parseInt(yearTo);
+      }
+      
+      if (minRating) {
+        filters.minRating = parseFloat(minRating);
+      }
+      
+      if (sortBy && ['popularity', 'rating', 'release_date', 'title'].includes(sortBy)) {
+        filters.sortBy = sortBy;
+      }
+
+      const results = await metadata.discover(
+        mediaType as "movie" | "tv", 
+        parseInt(page),
+        filters
+      );
+      
+      res.json({ success: true, data: results } as ApiResponse);
+    } catch (err: any) {
+      console.error('[API] Discover error:', err);
       res.status(500).json({ success: false, error: String(err) } as ApiResponse);
     }
   });

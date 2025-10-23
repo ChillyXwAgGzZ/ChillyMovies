@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import MovieCard from "../components/MovieCard";
+import HeroBanner from "../components/HeroBanner";
 import { metadataApi, type MediaMetadata } from "../services/api";
 
 interface HomeViewProps {
@@ -21,6 +22,7 @@ const HomeView: React.FC<HomeViewProps> = ({
   const navigate = useNavigate();
   const [popularMovies, setPopularMovies] = useState<MediaMetadata[]>([]);
   const [popularTV, setPopularTV] = useState<MediaMetadata[]>([]);
+  const [featuredMovies, setFeaturedMovies] = useState<MediaMetadata[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,6 +39,9 @@ const HomeView: React.FC<HomeViewProps> = ({
         
         setPopularMovies(movies);
         setPopularTV(tv);
+        
+        // Get 6 featured movies for hero banner (from popular movies)
+        setFeaturedMovies(movies.slice(0, 6));
       } catch (err) {
         console.error("Failed to fetch popular content:", err);
         setError(err instanceof Error ? err.message : "Failed to load content");
@@ -81,22 +86,23 @@ const HomeView: React.FC<HomeViewProps> = ({
         )}
 
         {!isSearching && !searchError && searchResults.length === 0 && (
-          <div className="bg-gray-800/50 rounded-lg p-12 text-center">
-            <p className="text-gray-400 text-lg">{t("home.noResults")}</p>
+          <div className="bg-gray-100 dark:bg-gray-800/50 rounded-lg p-12 text-center">
+            <p className="text-gray-600 dark:text-gray-400 text-lg">{t("home.noResults")}</p>
           </div>
         )}
 
         {!isSearching && searchResults.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          <div className="grid gap-5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}>
             {searchResults.map((item) => (
-              <MovieCard
-                key={`${item.mediaType}-${item.id}`}
-                title={item.title}
-                year={item.year?.toString() || ""}
-                poster={item.poster || ""}
-                rating={item.voteAverage || 0}
-                onClick={() => handleCardClick(item)}
-              />
+              <div key={`${item.mediaType}-${item.id}`} className="transform transition-transform duration-300 hover:scale-105">
+                <MovieCard
+                  title={item.title}
+                  year={item.year?.toString() || ""}
+                  poster={item.poster || ""}
+                  rating={item.voteAverage || 0}
+                  onClick={() => handleCardClick(item)}
+                />
+              </div>
             ))}
           </div>
         )}
@@ -106,10 +112,23 @@ const HomeView: React.FC<HomeViewProps> = ({
 
   // Show popular content by default
   return (
-    <div className="space-y-12">
+    <div className="space-y-0">
+      {/* Hero Banner - Featured Movies */}
+      {!loading && !error && featuredMovies.length > 0 && (
+        <div className="relative">
+          <HeroBanner 
+            movies={featuredMovies}
+            autoSlideInterval={4000}
+            onMovieClick={handleCardClick}
+          />
+          {/* Artistic fade transition from banner to content */}
+          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-b from-transparent via-gray-900/50 to-gray-900 pointer-events-none -mb-1" />
+        </div>
+      )}
+
       {/* Popular Movies Section */}
-      <section>
-        <h2 className="text-3xl font-bold mb-6">{t("home.popularMovies")}</h2>
+      <section className="pt-8 px-1">
+        <h2 className="text-2xl md:text-3xl font-bold mb-6 tracking-tight">{t("home.popularMovies")}</h2>
         
         {loading && (
           <div className="flex justify-center items-center py-20">
@@ -130,36 +149,38 @@ const HomeView: React.FC<HomeViewProps> = ({
         )}
 
         {!loading && !error && popularMovies.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          <div className="grid gap-5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}>
             {popularMovies.map((movie) => (
-              <MovieCard
-                key={`movie-${movie.id}`}
-                title={movie.title}
-                year={movie.year?.toString() || ""}
-                poster={movie.poster || ""}
-                rating={movie.voteAverage || 0}
-                onClick={() => handleCardClick(movie)}
-              />
+              <div key={`movie-${movie.id}`} className="transform transition-transform duration-300 hover:scale-105">
+                <MovieCard
+                  title={movie.title}
+                  year={movie.year?.toString() || ""}
+                  poster={movie.poster || ""}
+                  rating={movie.voteAverage || 0}
+                  onClick={() => handleCardClick(movie)}
+                />
+              </div>
             ))}
           </div>
         )}
       </section>
 
       {/* Popular TV Series Section */}
-      <section>
-        <h2 className="text-3xl font-bold mb-6">{t("home.popularTV")}</h2>
+      <section className="pt-8 px-1">
+        <h2 className="text-2xl md:text-3xl font-bold mb-6 tracking-tight">{t("home.popularTV")}</h2>
         
         {!loading && !error && popularTV.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          <div className="grid gap-5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}>
             {popularTV.map((show) => (
-              <MovieCard
-                key={`tv-${show.id}`}
-                title={show.title}
-                year={show.year?.toString() || ""}
-                poster={show.poster || ""}
-                rating={show.voteAverage || 0}
-                onClick={() => handleCardClick(show)}
-              />
+              <div key={`tv-${show.id}`} className="transform transition-transform duration-300 hover:scale-105">
+                <MovieCard
+                  title={show.title}
+                  year={show.year?.toString() || ""}
+                  poster={show.poster || ""}
+                  rating={show.voteAverage || 0}
+                  onClick={() => handleCardClick(show)}
+                />
+              </div>
             ))}
           </div>
         )}

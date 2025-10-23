@@ -152,7 +152,26 @@ npm run package
 
 # Package for all platforms (Windows, macOS, Linux)
 npm run package:all
+
+# Windows-specific packaging (see WINDOWS_README.md for details)
+npm run package:win          # Both installer + portable
+npm run package:win:nsis     # Installer only
+npm run package:win:portable # Portable only
 ```
+
+### 🪟 Windows Packaging
+
+For Windows users, we provide easy-to-use scripts:
+
+```powershell
+# PowerShell interactive menu
+.\package-windows.ps1
+
+# Or use batch file
+package-windows.bat
+```
+
+See **[WINDOWS_README.md](WINDOWS_README.md)** for complete Windows packaging guide.
 
 ## 📁 Project Structure
 
