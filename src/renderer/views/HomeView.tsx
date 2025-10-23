@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import MovieCard from "../components/MovieCard";
+import HeroBanner from "../components/HeroBanner";
 import { metadataApi, type MediaMetadata } from "../services/api";
 
 interface HomeViewProps {
@@ -21,6 +22,7 @@ const HomeView: React.FC<HomeViewProps> = ({
   const navigate = useNavigate();
   const [popularMovies, setPopularMovies] = useState<MediaMetadata[]>([]);
   const [popularTV, setPopularTV] = useState<MediaMetadata[]>([]);
+  const [featuredMovies, setFeaturedMovies] = useState<MediaMetadata[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,6 +39,9 @@ const HomeView: React.FC<HomeViewProps> = ({
         
         setPopularMovies(movies);
         setPopularTV(tv);
+        
+        // Get 6 featured movies for hero banner (from popular movies)
+        setFeaturedMovies(movies.slice(0, 6));
       } catch (err) {
         console.error("Failed to fetch popular content:", err);
         setError(err instanceof Error ? err.message : "Failed to load content");
@@ -107,6 +112,15 @@ const HomeView: React.FC<HomeViewProps> = ({
   // Show popular content by default
   return (
     <div className="space-y-12">
+      {/* Hero Banner - Featured Movies */}
+      {!loading && !error && featuredMovies.length > 0 && (
+        <HeroBanner 
+          movies={featuredMovies}
+          autoSlideInterval={5000}
+          onMovieClick={handleCardClick}
+        />
+      )}
+
       {/* Popular Movies Section */}
       <section>
         <h2 className="text-3xl font-bold mb-6">{t("home.popularMovies")}</h2>
