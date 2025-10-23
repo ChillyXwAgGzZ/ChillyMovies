@@ -4,7 +4,7 @@ import type { MediaMetadata } from "../services/api";
 
 interface HeroBannerProps {
   movies: MediaMetadata[];
-  autoSlideInterval?: number; // Milliseconds, default: 5000
+  autoSlideInterval?: number; // Milliseconds, default: 4000
   onMovieClick?: (movie: MediaMetadata) => void;
 }
 
@@ -22,7 +22,7 @@ interface HeroBannerProps {
  */
 const HeroBanner: React.FC<HeroBannerProps> = ({ 
   movies, 
-  autoSlideInterval = 5000,
+  autoSlideInterval = 4000,
   onMovieClick 
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -91,7 +91,7 @@ const HeroBanner: React.FC<HeroBannerProps> = ({
 
   return (
     <div 
-      className="relative w-full h-[60vh] min-h-[400px] max-h-[700px] overflow-hidden rounded-2xl mb-12"
+      className="relative w-full h-[55vh] min-h-[380px] max-h-[600px] overflow-hidden rounded-xl mb-0"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       role="region"
@@ -112,19 +112,21 @@ const HeroBanner: React.FC<HeroBannerProps> = ({
             }}
             aria-hidden={index !== currentIndex}
           >
-            {/* Gradient Overlay for text readability */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-transparent" />
+            {/* Gradient Overlay for text readability and smooth transition to content below */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent" />
+            {/* Bottom fade effect for seamless transition */}
+            <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-black/95" />
           </div>
         ))}
       </div>
 
       {/* Content */}
-      <div className="relative z-20 h-full flex flex-col justify-end p-8 md:p-12 lg:p-16">
+      <div className="relative z-20 h-full flex flex-col justify-end p-8 md:p-12 lg:p-16 pb-12 md:pb-16">
         <div className="max-w-3xl">
           {/* Movie Title */}
           <h1 
-            className={`text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 drop-shadow-lg transition-all duration-700 ${
+            className={`text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 drop-shadow-lg transition-all duration-700 line-clamp-2 ${
               isTransitioning ? "opacity-0 translate-y-4" : "opacity-100 translate-y-0"
             }`}
             style={{ textShadow: "0 2px 10px rgba(0,0,0,0.8)" }}
@@ -134,13 +136,13 @@ const HeroBanner: React.FC<HeroBannerProps> = ({
 
           {/* Year & Rating */}
           <div 
-            className={`flex items-center gap-4 mb-4 transition-all duration-700 delay-100 ${
+            className={`flex items-center gap-4 mb-3 transition-all duration-700 delay-100 ${
               isTransitioning ? "opacity-0 translate-y-4" : "opacity-100 translate-y-0"
             }`}
           >
-            <span className="text-lg text-gray-300">{year}</span>
-            <span className="flex items-center gap-1 text-lg text-yellow-400">
-              <svg className="w-5 h-5 fill-current" viewBox="0 0 20 20">
+            <span className="text-base md:text-lg text-gray-300">{year}</span>
+            <span className="flex items-center gap-1 text-base md:text-lg text-yellow-400">
+              <svg className="w-4 h-4 md:w-5 md:h-5 fill-current" viewBox="0 0 20 20">
                 <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
               </svg>
               {rating}
@@ -150,7 +152,7 @@ const HeroBanner: React.FC<HeroBannerProps> = ({
           {/* Overview */}
           {currentMovie.overview && (
             <p 
-              className={`text-base md:text-lg text-gray-200 mb-6 line-clamp-3 transition-all duration-700 delay-200 ${
+              className={`text-sm md:text-base text-gray-200 mb-5 line-clamp-2 md:line-clamp-3 transition-all duration-700 delay-200 ${
                 isTransitioning ? "opacity-0 translate-y-4" : "opacity-100 translate-y-0"
               }`}
               style={{ textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}
@@ -161,23 +163,23 @@ const HeroBanner: React.FC<HeroBannerProps> = ({
 
           {/* Action Buttons */}
           <div 
-            className={`flex flex-wrap gap-4 transition-all duration-700 delay-300 ${
+            className={`flex flex-wrap gap-3 transition-all duration-700 delay-300 ${
               isTransitioning ? "opacity-0 translate-y-4" : "opacity-100 translate-y-0"
             }`}
           >
             <button
               onClick={() => onMovieClick?.(currentMovie)}
-              className="flex items-center gap-2 px-6 py-3 bg-white text-black rounded-lg font-semibold hover:bg-gray-200 transition-all transform hover:scale-105 shadow-lg"
+              className="flex items-center gap-2 px-5 py-2.5 md:px-6 md:py-3 bg-white text-black rounded-lg font-semibold hover:bg-gray-200 transition-all transform hover:scale-105 shadow-lg text-sm md:text-base"
               aria-label={`More info about ${currentMovie.title}`}
             >
-              <Info size={20} />
+              <Info size={18} className="md:w-5 md:h-5" />
               <span>More Info</span>
             </button>
             <button
-              className="flex items-center gap-2 px-6 py-3 bg-white/20 backdrop-blur-md text-white border border-white/30 rounded-lg font-semibold hover:bg-white/30 transition-all shadow-lg"
+              className="flex items-center gap-2 px-5 py-2.5 md:px-6 md:py-3 bg-white/20 backdrop-blur-md text-white border border-white/30 rounded-lg font-semibold hover:bg-white/30 transition-all shadow-lg text-sm md:text-base"
               aria-label={`Play trailer for ${currentMovie.title}`}
             >
-              <Play size={20} />
+              <Play size={18} className="md:w-5 md:h-5" />
               <span>Watch Trailer</span>
             </button>
           </div>
@@ -206,33 +208,20 @@ const HeroBanner: React.FC<HeroBannerProps> = ({
 
       {/* Navigation Dots */}
       {movies.length > 1 && (
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex gap-2">
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex gap-2">
           {movies.map((_, index) => (
             <button
               key={index}
               onClick={() => handleDotClick(index)}
-              className={`w-2 h-2 rounded-full transition-all ${
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${
                 index === currentIndex
-                  ? "bg-white w-8"
-                  : "bg-white/50 hover:bg-white/75"
+                  ? "bg-white w-8 shadow-lg shadow-white/50"
+                  : "bg-white/40 hover:bg-white/70"
               }`}
               aria-label={`Go to slide ${index + 1}`}
               aria-current={index === currentIndex ? "true" : "false"}
             />
           ))}
-        </div>
-      )}
-
-      {/* Progress Bar (Optional) */}
-      {!isPaused && movies.length > 1 && (
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 z-30">
-          <div
-            className="h-full bg-white transition-all"
-            style={{
-              width: "100%",
-              animation: `progress ${autoSlideInterval}ms linear`,
-            }}
-          />
         </div>
       )}
 
