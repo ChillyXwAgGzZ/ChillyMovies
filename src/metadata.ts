@@ -599,6 +599,115 @@ export class TMDBMetadataFetcher implements MetadataFetcher {
   }
 
   /**
+   * Discover content with filters (Firebase Studio pattern)
+   * Supports: genres, year range, rating, sort
+   */
+  async discover(
+    mediaType: "movie" | "tv" = "movie", 
+    page: number = 1,
+    filters?: {
+      genres?: number[];
+      yearFrom?: number;
+      yearTo?: number;
+      minRating?: number;
+      sortBy?: "popularity" | "rating" | "release_date" | "title";
+    }
+  ): Promise<MediaMetadata[]> {
+    await this.ensureApiKey();
+    
+    if (!this.apiKey) {
+      throw new Error("TMDB API key not configured");
+    }
+
+    // Build query parameters
+    const params = new URLSearchParams({
+      api_key: this.apiKey,
+      page: page.toString(),
+      language: 'en-US',
+    });
+
+    // Add filters if provided
+    if (filters?.genres && filters.genres.length > 0) {
+      params.append('with_genres', filters.genres.join(','));
+    }
+    
+    if (filters?.yearFrom) {
+      const key = mediaType === "movie" ? "primary_release_date.gte" : "first_air_date.gte";
+      params.append(key, `${filters.yearFrom}-01-01`);
+    }
+    
+    if (filters?.yearTo) {
+      const key = mediaType === "movie" ? "primary_release_date.lte" : "first_air_date.lte";
+      params.append(key, `${filters.yearTo}-12-31`);
+    }
+    
+    if (filters?.minRating && filters.minRating > 0) {
+      params.append('vote_average.gte', filters.minRating.toString());
+      params.append('vote_count.gte', '100'); // Ensure enough votes for reliable rating
+    }
+    
+    // Sort by parameter
+    const sortMap: Record<string, string> = {
+      popularity: 'popularity.desc',
+      rating: 'vote_average.desc',
+      release_date: mediaType === 'movie' ? 'primary_release_date.desc' : 'first_air_date.desc',
+      title: mediaType === 'movie' ? 'title.asc' : 'name.asc',
+    };
+    params.append('sort_by', sortMap[filters?.sortBy || 'popularity'] || 'popularity.desc');
+
+    // Check cache
+    const cacheKey = createCacheKey("tmdb", "discover", mediaType, page, JSON.stringify(filters || {}));
+    if (this.cache) {
+      const cached = this.cache.get(cacheKey);
+      if (cached) {
+        console.log(`[TMDB] Cache hit for discover ${mediaType} page ${page}`);
+        return cached as MediaMetadata[];
+      }
+    }
+
+    const results = await withRetry(async () => {
+      const url = `${this.baseUrl}/discover/${mediaType}?${params.toString()}`;
+      console.log(`[TMDB] Discover URL: ${url.replace(this.apiKey || '', 'API_KEY')}`);
+      
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error("TMDB API rate limit exceeded. Using cached results if available.");
+        }
+        throw new Error(`TMDB API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data: any = await response.json();
+      
+      return (data.results || [])
+        .slice(0, 20) // Limit to top 20 results
+        .map((item: any) => ({
+          id: item.id,
+          title: item.title || item.name,
+          overview: item.overview,
+          year: item.release_date ? new Date(item.release_date).getFullYear() : 
+                item.first_air_date ? new Date(item.first_air_date).getFullYear() : undefined,
+          poster: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : undefined,
+          backdrop: item.backdrop_path ? `https://image.tmdb.org/t/p/original${item.backdrop_path}` : undefined,
+          voteAverage: item.vote_average,
+          releaseDate: item.release_date || item.first_air_date,
+          mediaType: mediaType,
+          genreIds: item.genre_ids || [],
+        }));
+    }, { 
+      retries: 2
+    });
+
+    // Cache the results (shorter TTL for filtered results)
+    if (this.cache) {
+      this.cache.set(cacheKey, results, 1800000); // 30 minutes
+    }
+
+    return results;
+  }
+
+  /**
    * Clear the cache
    */
   clearCache() {

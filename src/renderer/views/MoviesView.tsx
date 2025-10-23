@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, useLayoutEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import MovieCard from "../components/MovieCard";
@@ -20,18 +20,19 @@ const MoviesView: React.FC = () => {
   const [hasMore, setHasMore] = useState(true);
   const [filters, setFilters] = useState<FilterState>(() => {
     try {
-      const saved = localStorage.getItem(FILTERS_STORAGE_KEY);
+      const saved = sessionStorage.getItem(FILTERS_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
         // Validate that genres are numbers
         if (parsed.genres && Array.isArray(parsed.genres)) {
           parsed.genres = parsed.genres.filter((g: any) => typeof g === 'number');
         }
+        console.log('[MoviesView] Restored filters from sessionStorage:', parsed);
         return parsed;
       }
     } catch (err) {
-      console.warn("Failed to parse saved filters, using defaults", err);
-      localStorage.removeItem(FILTERS_STORAGE_KEY);
+      console.warn("[MoviesView] Failed to parse saved filters, using defaults", err);
+      sessionStorage.removeItem(FILTERS_STORAGE_KEY);
     }
     
     return {
@@ -45,10 +46,12 @@ const MoviesView: React.FC = () => {
   const observerTarget = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const mainContainerRef = useRef<HTMLElement | null>(null);
+  const [isInitialMount, setIsInitialMount] = useState(true);
+  const hasRestoredScroll = useRef(false);
 
-  // Save filters to localStorage when they change
+  // Save filters to sessionStorage when they change (Firebase pattern)
   useEffect(() => {
-    localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(filters));
+    sessionStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(filters));
   }, [filters]);
 
   // Get reference to the scrollable main container
@@ -75,92 +78,30 @@ const MoviesView: React.FC = () => {
     };
   }, []);
 
-  // Restore scroll position after movies are loaded
-  useEffect(() => {
-    if (!loading && movies.length > 0 && mainContainerRef.current) {
+  // Restore scroll position ONLY on initial mount (prevents scroll reset during infinite scroll)
+  useLayoutEffect(() => {
+    if (isInitialMount && !loading && movies.length > 0 && mainContainerRef.current && !hasRestoredScroll.current) {
       const savedPosition = sessionStorage.getItem(SCROLL_POSITION_KEY);
       if (savedPosition) {
         const scrollPos = parseInt(savedPosition, 10);
-        console.log(`[MoviesView] Restoring scroll position: ${scrollPos}`);
-        
-        // Use setTimeout to ensure DOM is fully rendered
-        setTimeout(() => {
-          if (mainContainerRef.current) {
-            mainContainerRef.current.scrollTop = scrollPos;
-          }
-        }, 100);
+        console.log(`[MoviesView] Restoring scroll position on mount: ${scrollPos}`);
+        mainContainerRef.current.scrollTop = scrollPos;
+        hasRestoredScroll.current = true;
       }
+      setIsInitialMount(false);
     }
-  }, [loading, movies.length]);
+  }, [isInitialMount, loading, movies.length]);
 
-    // Apply filters and sorting to movies
-  const filteredAndSortedMovies = useCallback(() => {
-    let result = [...movies];
+  // No client-side filtering needed - discover API handles all filtering server-side
 
-    console.log("Filtering movies:", {
-      totalMovies: result.length,
-      selectedGenres: filters.genres,
-      selectedGenreTypes: filters.genres.map(g => typeof g),
-      sampleMovies: result.slice(0, 3).map(m => ({
-        title: m.title,
-        genreIds: m.genreIds,
-        genreIdTypes: m.genreIds?.map(g => typeof g)
-      }))
-    });
-
-    // Filter by genres
-    if (filters.genres.length > 0) {
-      result = result.filter((movie) => {
-        if (!movie.genreIds || movie.genreIds.length === 0) {
-          return false;
-        }
-        // Movie must have at least one of the selected genres
-        return filters.genres.some(selectedGenre => 
-          movie.genreIds!.includes(selectedGenre)
-        );
-      });
-      console.log("After genre filter:", result.length, "movies");
-    }
-
-    // Filter by rating
-    if (filters.minRating > 0) {
-      result = result.filter((movie) => (movie.voteAverage || 0) >= filters.minRating);
-    }
-
-    // Filter by year
-    result = result.filter((movie) => {
-      const year = movie.year || new Date(movie.releaseDate || "").getFullYear();
-      return year >= filters.yearRange[0] && year <= filters.yearRange[1];
-    });
-
-    // Sort
-    switch (filters.sortBy) {
-      case "rating":
-        result.sort((a, b) => (b.voteAverage || 0) - (a.voteAverage || 0));
-        break;
-      case "release_date":
-        result.sort((a, b) => {
-          const dateA = new Date(a.releaseDate || 0).getTime();
-          const dateB = new Date(b.releaseDate || 0).getTime();
-          return dateB - dateA;
-        });
-        break;
-      case "title":
-        result.sort((a, b) => a.title.localeCompare(b.title));
-        break;
-      case "popularity":
-      default:
-        // Keep original order from API (already sorted by popularity)
-        break;
-    }
-
-    return result;
-  }, [movies, filters]);
-
-  const displayedMovies = filteredAndSortedMovies();
-
+  // Firebase pattern: Filter changes trigger API refetch with reset pagination
   const handleFiltersChange = (newFilters: FilterState) => {
+    console.log('[MoviesView] Filters changed, triggering refetch:', newFilters);
     setFilters(newFilters);
+    setPage(1);
+    setMovies([]); // Clear current results
+    setHasMore(true); // Reset pagination state
+    // fetchMovies(1) will be called by useEffect when filters change
   };
 
   // Restore scroll position on mount
@@ -186,7 +127,7 @@ const MoviesView: React.FC = () => {
     };
   }, []);
 
-  // Fetch movies
+  // Fetch movies with filters (Firebase pattern - using discover endpoint)
   const fetchMovies = useCallback(async (pageNum: number) => {
     try {
       if (pageNum === 1) {
@@ -196,14 +137,20 @@ const MoviesView: React.FC = () => {
       }
       setError(null);
 
-      const newMovies = await metadataApi.getPopular("movie", pageNum);
+      // Build filter parameters for discover API
+      const currentYear = new Date().getFullYear();
+      const filterParams = {
+        genres: filters.genres.length > 0 ? filters.genres : undefined,
+        yearFrom: filters.yearRange[0] !== 1900 ? filters.yearRange[0] : undefined,
+        yearTo: filters.yearRange[1] !== currentYear ? filters.yearRange[1] : undefined,
+        minRating: filters.minRating > 0 ? filters.minRating : undefined,
+        sortBy: filters.sortBy
+      };
+
+      console.log('[MoviesView] Fetching with filters:', { page: pageNum, filters: filterParams });
+      const newMovies = await metadataApi.discover("movie", pageNum, filterParams);
       
-      // Debug: Check if genreIds are present
-      console.log("Fetched movies sample:", newMovies.slice(0, 2).map(m => ({
-        title: m.title,
-        genreIds: m.genreIds,
-        year: m.year
-      })));
+      console.log('[MoviesView] Received movies:', newMovies.length);
       
       if (newMovies.length === 0 || newMovies.length < MOVIES_PER_PAGE) {
         setHasMore(false);
@@ -211,14 +158,14 @@ const MoviesView: React.FC = () => {
 
       setMovies((prev) => pageNum === 1 ? newMovies : [...prev, ...newMovies]);
     } catch (err) {
-      console.error("Failed to fetch movies:", err);
+      console.error("[MoviesView] Failed to fetch movies:", err);
       setError(err instanceof Error ? err.message : "Failed to load movies");
       setHasMore(false);
     } finally {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, []);
+  }, [filters]);
 
   // Initial fetch
   useEffect(() => {
@@ -280,7 +227,7 @@ const MoviesView: React.FC = () => {
           {t("nav.movies")}
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          {loading ? t("discovery.loading") : `${displayedMovies.length} of ${movies.length} movies`}
+          {loading ? t("discovery.loading") : `${movies.length} ${movies.length === 1 ? 'movie' : 'movies'}`}
         </p>
       </div>
 
@@ -312,10 +259,10 @@ const MoviesView: React.FC = () => {
       )}
 
       {/* Movies Grid */}
-      {!loading && displayedMovies.length > 0 && (
+      {!loading && movies.length > 0 && (
         <>
           <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
-            {displayedMovies.map((movie) => (
+            {movies.map((movie) => (
               <MovieCard
                 key={`movie-${movie.id}`}
                 title={movie.title}
@@ -348,25 +295,7 @@ const MoviesView: React.FC = () => {
         </>
       )}
 
-      {/* Empty State - No results after filtering */}
-      {!loading && movies.length > 0 && displayedMovies.length === 0 && (
-        <div className="bg-gray-100 dark:bg-gray-800/50 rounded-lg p-12 text-center">
-          <p className="text-gray-600 dark:text-gray-400 text-lg mb-2">
-            No movies match your filters
-          </p>
-          <button
-            onClick={() => setFilters({
-              genres: [],
-              yearRange: [1900, new Date().getFullYear()],
-              minRating: 0,
-              sortBy: "popularity",
-            })}
-            className="text-indigo-600 dark:text-indigo-400 hover:underline text-sm"
-          >
-            Reset filters
-          </button>
-        </div>
-      )}
+
 
       {/* Empty State - No movies loaded */}
       {!loading && !error && movies.length === 0 && (

@@ -298,7 +298,7 @@ const TVDetailView: React.FC = () => {
         )}
       </div>
 
-      {/* Networks (Phase 3) */}
+      {/* Networks (Phase 3 + Phase 4: Light mode visibility fix) */}
       {series.networks && series.networks.length > 0 && (
         <div className="mb-8">
           <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
@@ -308,7 +308,7 @@ const TVDetailView: React.FC = () => {
             {series.networks.slice(0, 5).map((network) => (
               <div
                 key={network.id}
-                className="flex items-center gap-2 bg-white/5 dark:bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3 hover:bg-white/10 dark:hover:bg-white/15 transition-all"
+                className="flex items-center gap-2 bg-white dark:bg-white/10 backdrop-blur-sm border border-gray-200 dark:border-white/20 rounded-lg p-3 hover:bg-gray-50 dark:hover:bg-white/15 transition-all shadow-sm"
               >
                 {network.logoPath ? (
                   <img
@@ -330,7 +330,7 @@ const TVDetailView: React.FC = () => {
         </div>
       )}
 
-      {/* Production Companies (Phase 3) */}
+      {/* Production Companies (Phase 3 + Phase 4: Light mode visibility fix) */}
       {series.productionCompanies && series.productionCompanies.length > 0 && (
         <div className="mb-8">
           <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
@@ -340,7 +340,7 @@ const TVDetailView: React.FC = () => {
             {series.productionCompanies.slice(0, 5).map((company) => (
               <div
                 key={company.id}
-                className="flex items-center gap-2 bg-white/5 dark:bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3 hover:bg-white/10 dark:hover:bg-white/15 transition-all"
+                className="flex items-center gap-2 bg-white dark:bg-white/10 backdrop-blur-sm border border-gray-200 dark:border-white/20 rounded-lg p-3 hover:bg-gray-50 dark:hover:bg-white/15 transition-all shadow-sm"
               >
                 {company.logoPath ? (
                   <img

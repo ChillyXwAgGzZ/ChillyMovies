@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, useLayoutEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import MovieCard from "../components/MovieCard";
@@ -20,18 +20,19 @@ const TVSeriesView: React.FC = () => {
   const [hasMore, setHasMore] = useState(true);
   const [filters, setFilters] = useState<FilterState>(() => {
     try {
-      const saved = localStorage.getItem(FILTERS_STORAGE_KEY);
+      const saved = sessionStorage.getItem(FILTERS_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
         // Validate that genres are numbers
         if (parsed.genres && Array.isArray(parsed.genres)) {
           parsed.genres = parsed.genres.filter((g: any) => typeof g === 'number');
         }
+        console.log('[TVSeriesView] Restored filters from sessionStorage:', parsed);
         return parsed;
       }
     } catch (err) {
-      console.warn("Failed to parse saved TV filters, using defaults", err);
-      localStorage.removeItem(FILTERS_STORAGE_KEY);
+      console.warn("[TVSeriesView] Failed to parse saved TV filters, using defaults", err);
+      sessionStorage.removeItem(FILTERS_STORAGE_KEY);
     }
     
     return {
@@ -45,10 +46,12 @@ const TVSeriesView: React.FC = () => {
   const observerTarget = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const mainContainerRef = useRef<HTMLElement | null>(null);
+  const [isInitialMount, setIsInitialMount] = useState(true);
+  const hasRestoredScroll = useRef(false);
 
-  // Save filters to localStorage when they change
+  // Save filters to sessionStorage when they change (Firebase pattern)
   useEffect(() => {
-    localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(filters));
+    sessionStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(filters));
   }, [filters]);
 
   // Get reference to the scrollable main container
@@ -75,95 +78,33 @@ const TVSeriesView: React.FC = () => {
     };
   }, []);
 
-  // Restore scroll position after TV shows are loaded
-  useEffect(() => {
-    if (!loading && tvShows.length > 0 && mainContainerRef.current) {
+  // Restore scroll position ONLY on initial mount (prevents scroll reset during infinite scroll)
+  useLayoutEffect(() => {
+    if (isInitialMount && !loading && tvShows.length > 0 && mainContainerRef.current && !hasRestoredScroll.current) {
       const savedPosition = sessionStorage.getItem(SCROLL_POSITION_KEY);
       if (savedPosition) {
         const scrollPos = parseInt(savedPosition, 10);
-        console.log(`[TVSeriesView] Restoring scroll position: ${scrollPos}`);
-        
-        // Use setTimeout to ensure DOM is fully rendered
-        setTimeout(() => {
-          if (mainContainerRef.current) {
-            mainContainerRef.current.scrollTop = scrollPos;
-          }
-        }, 100);
+        console.log(`[TVSeriesView] Restoring scroll position on mount: ${scrollPos}`);
+        mainContainerRef.current.scrollTop = scrollPos;
+        hasRestoredScroll.current = true;
       }
+      setIsInitialMount(false);
     }
-  }, [loading, tvShows.length]);
+  }, [isInitialMount, loading, tvShows.length]);
 
-  // Apply filters and sorting to TV shows
-  const filteredAndSortedTVShows = useCallback(() => {
-    let result = [...tvShows];
+  // No client-side filtering needed - discover API handles all filtering server-side
 
-    console.log("Filtering TV shows:", {
-      totalShows: result.length,
-      selectedGenres: filters.genres,
-      selectedGenreTypes: filters.genres.map(g => typeof g),
-      sampleShows: result.slice(0, 3).map(s => ({
-        title: s.title,
-        genreIds: s.genreIds,
-        genreIdTypes: s.genreIds?.map(g => typeof g)
-      }))
-    });
-
-    // Filter by genres
-    if (filters.genres.length > 0) {
-      result = result.filter((show) => {
-        if (!show.genreIds || show.genreIds.length === 0) {
-          return false;
-        }
-        // Show must have at least one of the selected genres
-        return filters.genres.some(selectedGenre => 
-          show.genreIds!.includes(selectedGenre)
-        );
-      });
-      console.log("After genre filter:", result.length, "TV shows");
-    }
-
-    // Filter by rating
-    if (filters.minRating > 0) {
-      result = result.filter((show) => (show.voteAverage || 0) >= filters.minRating);
-    }
-
-    // Filter by year
-    result = result.filter((show) => {
-      const year = show.year || new Date(show.releaseDate || "").getFullYear();
-      return year >= filters.yearRange[0] && year <= filters.yearRange[1];
-    });
-
-    // Sort
-    switch (filters.sortBy) {
-      case "rating":
-        result.sort((a, b) => (b.voteAverage || 0) - (a.voteAverage || 0));
-        break;
-      case "release_date":
-        result.sort((a, b) => {
-          const dateA = new Date(a.releaseDate || 0).getTime();
-          const dateB = new Date(b.releaseDate || 0).getTime();
-          return dateB - dateA;
-        });
-        break;
-      case "title":
-        result.sort((a, b) => a.title.localeCompare(b.title));
-        break;
-      case "popularity":
-      default:
-        // Keep original order from API (already sorted by popularity)
-        break;
-    }
-
-    return result;
-  }, [tvShows, filters]);
-
-  const displayedTVShows = filteredAndSortedTVShows();
-
+  // Firebase pattern: Filter changes trigger API refetch with reset pagination
   const handleFiltersChange = (newFilters: FilterState) => {
+    console.log('[TVSeriesView] Filters changed, triggering refetch:', newFilters);
     setFilters(newFilters);
+    setPage(1);
+    setTvShows([]); // Clear current results
+    setHasMore(true); // Reset pagination state
+    // fetchTVShows(1) will be called by useEffect when filters change
   };
 
-  // Fetch TV shows
+  // Fetch TV shows with filters (Firebase pattern - using discover endpoint)
   const fetchTVShows = useCallback(async (pageNum: number) => {
     try {
       if (pageNum === 1) {
@@ -173,14 +114,20 @@ const TVSeriesView: React.FC = () => {
       }
       setError(null);
 
-      const newShows = await metadataApi.getPopular("tv", pageNum);
+      // Build filter parameters for discover API
+      const currentYear = new Date().getFullYear();
+      const filterParams = {
+        genres: filters.genres.length > 0 ? filters.genres : undefined,
+        yearFrom: filters.yearRange[0] !== 1900 ? filters.yearRange[0] : undefined,
+        yearTo: filters.yearRange[1] !== currentYear ? filters.yearRange[1] : undefined,
+        minRating: filters.minRating > 0 ? filters.minRating : undefined,
+        sortBy: filters.sortBy
+      };
+
+      console.log('[TVSeriesView] Fetching with filters:', { page: pageNum, filters: filterParams });
+      const newShows = await metadataApi.discover("tv", pageNum, filterParams);
       
-      // Debug: Check if genreIds are present
-      console.log("Fetched TV shows sample:", newShows.slice(0, 2).map(s => ({
-        title: s.title,
-        genreIds: s.genreIds,
-        year: s.year
-      })));
+      console.log('[TVSeriesView] Received TV shows:', newShows.length);
       
       if (newShows.length === 0 || newShows.length < TV_PER_PAGE) {
         setHasMore(false);
@@ -188,14 +135,14 @@ const TVSeriesView: React.FC = () => {
 
       setTvShows((prev) => pageNum === 1 ? newShows : [...prev, ...newShows]);
     } catch (err) {
-      console.error("Failed to fetch TV shows:", err);
+      console.error("[TVSeriesView] Failed to fetch TV shows:", err);
       setError(err instanceof Error ? err.message : "Failed to load TV shows");
       setHasMore(false);
     } finally {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, []);
+  }, [filters]);
 
   // Initial fetch
   useEffect(() => {
@@ -257,7 +204,7 @@ const TVSeriesView: React.FC = () => {
           {t("nav.tvSeries")}
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          {loading ? t("discovery.loading") : `${displayedTVShows.length} of ${tvShows.length} TV series`}
+          {loading ? t("discovery.loading") : `${tvShows.length} ${tvShows.length === 1 ? 'series' : 'series'}`}
         </p>
       </div>
 
@@ -289,10 +236,10 @@ const TVSeriesView: React.FC = () => {
       )}
 
       {/* TV Shows Grid */}
-      {!loading && displayedTVShows.length > 0 && (
+      {!loading && tvShows.length > 0 && (
         <>
           <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
-            {displayedTVShows.map((show) => (
+            {tvShows.map((show) => (
               <MovieCard
                 key={`tv-${show.id}`}
                 title={show.title}
@@ -317,32 +264,12 @@ const TVSeriesView: React.FC = () => {
           )}
 
           {/* End of Results */}
-          {!hasMore && displayedTVShows.length > 0 && (
+          {!hasMore && tvShows.length > 0 && (
             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
               <p className="text-sm">That's all the TV series for now</p>
             </div>
           )}
         </>
-      )}
-
-      {/* No Results After Filtering */}
-      {!loading && !error && tvShows.length > 0 && displayedTVShows.length === 0 && (
-        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-8 text-center">
-          <p className="text-yellow-800 dark:text-yellow-200 text-lg mb-4">
-            No TV series match your filters
-          </p>
-          <button
-            onClick={() => setFilters({
-              genres: [],
-              yearRange: [1900, new Date().getFullYear()],
-              minRating: 0,
-              sortBy: "popularity",
-            })}
-            className="text-indigo-600 dark:text-indigo-400 hover:underline text-sm"
-          >
-            Reset filters
-          </button>
-        </div>
       )}
 
       {/* Empty State - No TV shows loaded */}

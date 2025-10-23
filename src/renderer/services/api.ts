@@ -332,6 +332,44 @@ export const metadataApi = {
   },
 
   /**
+   * Discover content with filters (Firebase Studio pattern)
+   */
+  async discover(
+    mediaType: "movie" | "tv" = "movie",
+    page: number = 1,
+    filters?: {
+      genres?: number[];
+      yearFrom?: number;
+      yearTo?: number;
+      minRating?: number;
+      sortBy?: "popularity" | "rating" | "release_date" | "title";
+    }
+  ): Promise<MediaMetadata[]> {
+    const params = new URLSearchParams({
+      mediaType,
+      page: page.toString(),
+    });
+
+    if (filters?.genres && filters.genres.length > 0) {
+      params.append('genres', filters.genres.join(','));
+    }
+    if (filters?.yearFrom) {
+      params.append('yearFrom', filters.yearFrom.toString());
+    }
+    if (filters?.yearTo) {
+      params.append('yearTo', filters.yearTo.toString());
+    }
+    if (filters?.minRating) {
+      params.append('minRating', filters.minRating.toString());
+    }
+    if (filters?.sortBy) {
+      params.append('sortBy', filters.sortBy);
+    }
+
+    return apiFetch<MediaMetadata[]>(`/metadata/discover?${params.toString()}`);
+  },
+
+  /**
    * Get cache statistics
    */
   async getCacheStats(): Promise<any> {
