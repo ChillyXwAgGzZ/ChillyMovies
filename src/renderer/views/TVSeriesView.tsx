@@ -44,34 +44,54 @@ const TVSeriesView: React.FC = () => {
   
   const observerTarget = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const mainContainerRef = useRef<HTMLElement | null>(null);
 
   // Save filters to localStorage when they change
   useEffect(() => {
     localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(filters));
   }, [filters]);
 
-  // Restore scroll position on mount
+  // Get reference to the scrollable main container
   useEffect(() => {
-    const savedPosition = sessionStorage.getItem(SCROLL_POSITION_KEY);
-    if (savedPosition) {
-      setTimeout(() => {
-        const mainElement = document.querySelector('main');
-        if (mainElement) {
-          mainElement.scrollTop = parseInt(savedPosition, 10);
-        }
-      }, 100);
+    const main = document.querySelector('main');
+    if (main) {
+      mainContainerRef.current = main;
     }
   }, []);
 
-  // Save scroll position on unmount
+  // Save scroll position before unmounting or navigating away
   useEffect(() => {
-    return () => {
-      const mainElement = document.querySelector('main');
-      if (mainElement) {
-        sessionStorage.setItem(SCROLL_POSITION_KEY, mainElement.scrollTop.toString());
+    const saveScrollPosition = () => {
+      if (mainContainerRef.current) {
+        const scrollPos = mainContainerRef.current.scrollTop;
+        sessionStorage.setItem(SCROLL_POSITION_KEY, scrollPos.toString());
+        console.log(`[TVSeriesView] Saved scroll position: ${scrollPos}`);
       }
     };
+
+    // Save on unmount
+    return () => {
+      saveScrollPosition();
+    };
   }, []);
+
+  // Restore scroll position after TV shows are loaded
+  useEffect(() => {
+    if (!loading && tvShows.length > 0 && mainContainerRef.current) {
+      const savedPosition = sessionStorage.getItem(SCROLL_POSITION_KEY);
+      if (savedPosition) {
+        const scrollPos = parseInt(savedPosition, 10);
+        console.log(`[TVSeriesView] Restoring scroll position: ${scrollPos}`);
+        
+        // Use setTimeout to ensure DOM is fully rendered
+        setTimeout(() => {
+          if (mainContainerRef.current) {
+            mainContainerRef.current.scrollTop = scrollPos;
+          }
+        }, 100);
+      }
+    }
+  }, [loading, tvShows.length]);
 
   // Apply filters and sorting to TV shows
   const filteredAndSortedTVShows = useCallback(() => {
@@ -214,6 +234,12 @@ const TVSeriesView: React.FC = () => {
   }, [page, fetchTVShows]);
 
   const handleCardClick = (show: MediaMetadata) => {
+    // Save scroll position immediately before navigation
+    if (mainContainerRef.current) {
+      const scrollPos = mainContainerRef.current.scrollTop;
+      sessionStorage.setItem(SCROLL_POSITION_KEY, scrollPos.toString());
+      console.log(`[TVSeriesView] Saved scroll position on click: ${scrollPos}`);
+    }
     navigate(`/tv/${show.id}`);
   };
 
@@ -265,7 +291,7 @@ const TVSeriesView: React.FC = () => {
       {/* TV Shows Grid */}
       {!loading && displayedTVShows.length > 0 && (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6">
+          <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
             {displayedTVShows.map((show) => (
               <MovieCard
                 key={`tv-${show.id}`}
