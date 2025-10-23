@@ -26,7 +26,10 @@
     "test:e2e:debug": "playwright test --debug",
     "lint": "echo \"no linter configured\"",
     "package": "npm run build && electron-builder build --publish never",
-    "package:all": "npm run build && electron-builder build -mwl --publish never"
+    "package:all": "npm run build && electron-builder build -mwl --publish never",
+    "package:win": "npm run build && electron-builder build --win --publish never",
+    "package:win:portable": "npm run build && electron-builder build --win portable --publish never",
+    "package:win:nsis": "npm run build && electron-builder build --win nsis --publish never"
   },
   "engines": {
     "node": ">=18"
@@ -82,10 +85,20 @@
   "build": {
     "appId": "com.chillymovies.app",
     "productName": "Chilly Movies",
+    "copyright": "Copyright © 2025 ChillyMovies Team",
     "files": [
       "dist/**/*",
       "node_modules/**/*",
       "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "media",
+        "to": "media",
+        "filter": [
+          "**/*"
+        ]
+      }
     ],
     "directories": {
       "buildResources": "assets",
@@ -93,23 +106,97 @@
     },
     "mac": {
       "category": "public.app-category.entertainment",
+      "icon": "assets/icon.icns",
       "target": [
-        "dmg",
-        "zip"
-      ]
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "assets/entitlements.mac.plist",
+      "entitlementsInherit": "assets/entitlements.mac.plist"
     },
     "win": {
+      "icon": "assets/icon.ico",
       "target": [
-        "nsis",
-        "portable"
-      ]
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "publisherName": "ChillyMovies Team",
+      "verifyUpdateCodeSignature": false,
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "installerHeaderIcon": "assets/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Chilly Movies",
+      "include": "assets/installer.nsh",
+      "perMachine": false,
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "${productName}-Setup-${version}.${ext}",
+      "displayLanguageSelector": false,
+      "installerLanguages": [
+        "en_US"
+      ],
+      "license": "LICENSE"
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}.${ext}"
     },
     "linux": {
+      "icon": "assets/icon.png",
       "target": [
-        "AppImage",
-        "deb"
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
-      "category": "AudioVideo"
+      "category": "AudioVideo",
+      "synopsis": "Desktop-first offline movie downloader and player",
+      "description": "Chilly Movies is a desktop application for downloading and managing your movie collection offline.",
+      "desktop": {
+        "Name": "Chilly Movies",
+        "Type": "Application",
+        "Categories": "AudioVideo;Video;Player;"
+      }
     }
   }
 }
